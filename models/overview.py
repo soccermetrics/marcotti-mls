@@ -218,15 +218,18 @@ class Persons(BaseSchema):
 
         If a person has a nickname, that name becomes the person's full name.
 
+        If a person has an alternate first name by which he/she is otherwise known, that name
+        becomes part of the full name.
+
         :return: Person's full name.
         """
         if self.nick_name is not None:
             return self.nick_name
         else:
             if self.order == enums.NameOrderType.western:
-                return u"{} {}".format(self.first_name, self.last_name)
+                return u"{} {}".format(self.known_first_name or self.first_name, self.last_name)
             elif self.order == enums.NameOrderType.middle:
-                return u"{} {} {}".format(self.first_name, self.middle_name, self.last_name)
+                return u"{} {} {}".format(self.known_first_name or self.first_name, self.middle_name, self.last_name)
             elif self.order == enums.NameOrderType.eastern:
                 return u"{} {}".format(self.last_name, self.first_name)
 
@@ -237,17 +240,23 @@ class Persons(BaseSchema):
 
         If a person has a nickname, that name becomes the person's full name.
 
+        If a person has an alternate first name by which he/she is otherwise known, that name
+        becomes part of the full name.
+
         :return: Person's full name.
         """
         return case(
-                [(cls.nick_name != None, cls.nick_name)],
+            [(cls.nick_name != None, cls.nick_name)],
+            else_=case(
+                [
+                    (cls.order == enums.NameOrderType.middle,
+                        case([(cls.known_first_name != None, cls.known_first_name)], else_=cls.first_name) +
+                        ' ' + cls.middle_name + ' ' + cls.last_name),
+                    (cls.order == enums.NameOrderType.eastern, cls.last_name + ' ' + cls.first_name)
+                ],
                 else_=case(
-                    [(cls.order == enums.NameOrderType.middle,
-                      cls.first_name + ' ' + cls.middle_name + ' ' + cls.last_name),
-                     (cls.order == enums.NameOrderType.eastern,
-                      cls.last_name + ' ' + cls.first_name)],
-                    else_=cls.first_name + ' ' + cls.last_name
-                ))
+                    [(cls.known_first_name != None, cls.known_first_name)],
+                    else_=cls.first_name) + ' ' + cls.last_name))
 
     @hybrid_property
     def official_name(self):
