@@ -141,28 +141,31 @@ class InternationalCompetitions(Competitions):
             self.name, self.confederation.value)
 
 
-class CompetitionDates(BaseSchema):
+class CompetitionSeasons(BaseSchema):
     """
-    Competition date models.
+    Data model for a season's league competition. (Regular season only)
     """
-    __tablename__ = 'competition_dates'
+    __tablename__ = 'competition_seasons'
 
     competition_id = Column(Integer, ForeignKey('competitions.id'), primary_key=True)
     season_id = Column(Integer, ForeignKey('seasons.id'), primary_key=True)
 
     start_date = Column(Date)
     end_date = Column(Date)
+    matchdays = Column(Integer)
 
     competition = relationship('Competitions')
     season = relationship('Seasons')
 
     def __repr__(self):
-        return "<CompetitionDate(name={0}, season={1}, start={2}, end={3})>".format(
-            self.competition.name, self.season.name, self.start_date.isoformat(), self.end_date.isoformat())
+        return "<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
+            self.competition.name, self.season.name, self.start_date.isoformat(),
+            self.end_date.isoformat(), self.matchdays)
 
     def __unicode__(self):
-        return u"<CompetitionDate(name={0}, season={1}, start={2}, end={3})>".format(
-            self.competition.name, self.season.name, self.start_date.isoformat(), self.end_date.isoformat())
+        return u"<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
+            self.competition.name, self.season.name, self.start_date.isoformat(),
+            self.end_date.isoformat(), self.matchdays)
 
 
 class Clubs(BaseSchema):
