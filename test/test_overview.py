@@ -194,7 +194,7 @@ def test_person_generic_insert(session, person_data):
     assert record.official_name == u"James Doe"
     assert record.age(date(2010, 1, 1)) == 30
     assert record.exact_age(date(2010, 3, 15)) == (30, 74)
-    assert repr(record) == u"<Person(name=John Doe, country=Portlandia, DOB=1980-01-01)>"
+    assert repr(record) == u"<Person(name=Jim Doe, country=Portlandia, DOB=1980-01-01)>"
 
 
 def test_person_middle_naming_order(session, person_data):
@@ -229,33 +229,6 @@ def test_person_nickname(session, person_data):
 
     assert person_from_db.full_name == u"Cristiano Ronaldo"
     assert person_from_db.official_name == u"Cristiano Ronaldo Aveiro dos Santos"
-
-
-def test_person_missing_first_name_error(session, person_data):
-    """Person 005: Verify error if first name is missing from Persons data."""
-    generic_data_without_first = {key: value for key, value in person_data['generic'].items() if key != 'first_name'}
-    generic_person = Persons(**generic_data_without_first)
-    with pytest.raises(IntegrityError):
-        session.add(generic_person)
-        session.commit()
-
-
-def test_person_missing_last_name_error(session, person_data):
-    """Person 006: Verify error if last name is missing from Persons data."""
-    generic_data_without_last = {key: value for key, value in person_data['generic'].items() if key != 'last_name'}
-    generic_person = Persons(**generic_data_without_last)
-    with pytest.raises(IntegrityError):
-        session.add(generic_person)
-        session.commit()
-
-
-def test_person_missing_birth_date_error(session, person_data):
-    """Person 007: Verify error if birth date is missing from Persons data."""
-    generic_data_without_dob = {key: value for key, value in person_data['generic'].items() if key != 'birth_date'}
-    generic_person = Persons(**generic_data_without_dob)
-    with pytest.raises(IntegrityError):
-        session.add(generic_person)
-        session.commit()
 
 
 def test_person_age_query(session, person_data):
