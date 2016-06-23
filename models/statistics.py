@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Sequence, Index
+from sqlalchemy import Column, Integer, String, ForeignKey, Sequence, Index, ForeignKeyConstraint
 from sqlalchemy.orm import relationship, backref
 
 from models.common import BaseSchema
@@ -75,3 +75,25 @@ class GoalkeeperStats(CommonStats):
     goals_allowed = Column(Integer)
     shots_allowed = Column(Integer)
     clean_sheets = Column(Integer)
+
+
+class LeagueCompetitionPoints(BaseSchema):
+    """
+    Data model of points earned in league competitions.
+    """
+    __tablename__ = "league_points"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['competition_id', 'season_id'],
+            ['competition_seasons.competition_id', 'competition_seasons.season_id'],
+        ),
+    )
+
+    id = Column(Integer, Sequence('leaguept_id_seq', start=10000), primary_key=True)
+
+    played = Column(Integer)
+    points = Column(Integer)
+
+    club_id = Column(Integer, ForeignKey('clubs.id'))
+    competition_id = Column(Integer, ForeignKey('competitions.id'))
+    season_id = Column(Integer, ForeignKey('seasons.id'))
