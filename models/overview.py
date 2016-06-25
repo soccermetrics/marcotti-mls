@@ -169,6 +169,9 @@ class CompetitionSeasons(BaseSchema):
 
 
 class Clubs(BaseSchema):
+    """
+    Football club data model.
+    """
     __tablename__ = 'clubs'
 
     id = Column(Integer, Sequence('club_id_seq', start=10000), primary_key=True)
