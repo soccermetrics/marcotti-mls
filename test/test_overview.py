@@ -7,104 +7,98 @@ from sqlalchemy.exc import DataError, IntegrityError
 from models import *
 
 
-def test_country_insert(session):
+def test_country_insert(session, country_data):
     """Country 001: Insert a single record into Countries table and verify data."""
-    england = Countries(name=u'England', confederation=ConfederationType.europe)
+    england = Countries(**country_data['england'])
     session.add(england)
 
     country = session.query(Countries).all()
 
-    assert country[0].name == u'England'
+    assert country[0].name == country_data['england']['name']
     assert country[0].confederation.value == 'UEFA'
-    assert repr(country[0]) == "<Country(id={0}, name=England, confed=UEFA)>".format(country[0].id)
+    assert repr(country[0]) == "<Country(id={0}, name={1}, confed=UEFA)>".format(country[0].id,
+                                                                                 country_data['england']['name'])
 
 
-def test_country_unicode_insert(session):
+def test_country_unicode_insert(session, country_data):
     """Country 002: Insert a single record with Unicode characters into Countries table and verify data."""
-    ivory_coast = Countries(name=u"Côte d'Ivoire", confederation=ConfederationType.africa)
+    ivory_coast = Countries(**country_data['ivory_coast'])
     session.add(ivory_coast)
 
     country = session.query(Countries).filter_by(confederation=ConfederationType.africa).one()
 
-    assert country.name == u"Côte d'Ivoire"
+    assert country.name == country_data['ivory_coast']['name']
     assert country.confederation.value == 'CAF'
 
 
-def test_country_name_overflow_error(session):
+def test_country_name_overflow_error(session, country_data):
     """Country 003: Verify error if country name exceeds field length."""
-    too_long_name = "blahblah" * 8
-    too_long_country = Countries(name=unicode(too_long_name), confederation=ConfederationType.north_america)
+    too_long_country = Countries(**country_data['overflow'])
     with pytest.raises(DataError):
         session.add(too_long_country)
         session.commit()
 
 
-def test_competition_insert(session):
+def test_competition_insert(session, comp_data):
     """Competition 001: Insert a single record into Competitions table and verify data."""
-    record = Competitions(name=u"English Premier League", level=1)
+    domestic_without_country = {key: value for key, value in comp_data['domestic'].items() if key != 'country'}
+    record = Competitions(**domestic_without_country)
     session.add(record)
 
     competition = session.query(Competitions).filter_by(level=1).one()
 
-    assert competition.name == u"English Premier League"
-    assert competition.level == 1
+    assert competition.name == domestic_without_country['name']
+    assert competition.level == domestic_without_country['level']
 
 
-def test_competition_unicode_insert(session):
+def test_competition_unicode_insert(session, comp_data):
     """Competition 002: Insert a single record with Unicode characters into Competitions table and verify data."""
-    record = Competitions(name=u"Süper Lig", level=1)
+    record = Competitions(**comp_data['unicode'])
     session.add(record)
 
     competition = session.query(Competitions).one()
 
-    assert competition.name == u"Süper Lig"
+    assert competition.name == comp_data['unicode']['name']
 
 
-def test_competition_name_overflow_error(session):
+def test_competition_name_overflow_error(session, comp_data):
     """Competition 003: Verify error if competition name exceeds field length."""
-    too_long_name = "leaguename" * 9
-    record = Competitions(name=unicode(too_long_name), level=2)
+    overflow_record = Competitions(**comp_data['overflow'])
     with pytest.raises(DataError):
-        session.add(record)
+        session.add(overflow_record)
         session.commit()
 
 
-def test_domestic_competition_insert(session):
+def test_domestic_competition_insert(session, comp_data):
     """Domestic Competition 001: Insert domestic competition record and verify data."""
-    comp_name = u"Major League Soccer"
-    comp_country = u"USA"
-    comp_level = 1
-    record = DomesticCompetitions(name=comp_name, level=comp_level, country=Countries(
-        name=comp_country, confederation=ConfederationType.europe))
+    record = DomesticCompetitions(**comp_data['domestic'])
     session.add(record)
 
     competition = session.query(DomesticCompetitions).one()
 
     assert repr(competition) == "<DomesticCompetition(name={0}, country={1}, level={2})>".format(
-        comp_name, comp_country, comp_level)
-    assert competition.name == comp_name
-    assert competition.level == comp_level
-    assert competition.country.name == comp_country
+        comp_data['domestic']['name'], comp_data['domestic']['country'].name, comp_data['domestic']['level'])
+    assert competition.name == comp_data['domestic']['name']
+    assert competition.level == comp_data['domestic']['level']
+    assert competition.country.name == comp_data['domestic']['country'].name
 
 
-def test_international_competition_insert(session):
+def test_international_competition_insert(session, comp_data):
     """International Competition 001: Insert international competition record and verify data."""
-    comp_name = u"UEFA Champions League"
-    comp_confed = ConfederationType.europe
-    record = InternationalCompetitions(name=comp_name, level=1, confederation=comp_confed)
+    record = InternationalCompetitions(**comp_data['international'])
     session.add(record)
 
     competition = session.query(InternationalCompetitions).one()
 
     assert repr(competition) == "<InternationalCompetition(name={0}, confederation={1})>".format(
-        comp_name, comp_confed.value
+        comp_data['international']['name'], comp_data['international']['confederation'].value
     )
-    assert competition.level == 1
+    assert competition.level == comp_data['international']['level']
 
 
-def test_year_insert(session):
+def test_year_insert(session, year_data):
     """Year 001: Insert multiple years into Years table and verify data."""
-    years_list = range(1990, 1994)
+    years_list = range(*year_data['90_to_94'])
     for yr in years_list:
         record = Years(yr=yr)
         session.add(record)
@@ -115,22 +109,22 @@ def test_year_insert(session):
     assert set(years_from_db) & set(years_list) == set(years_list)
 
 
-def test_year_duplicate_error(session):
+def test_year_duplicate_error(session, year_data):
     """Year 002: Verify error if year is inserted twice in Years table."""
-    for yr in range(1992, 1995):
+    for yr in range(*year_data['92_to_95']):
         record = Years(yr=yr)
         session.add(record)
 
-    duplicate = Years(yr=1994)
+    duplicate = Years(yr=year_data['year_94'])
     with pytest.raises(IntegrityError):
         session.add(duplicate)
         session.commit()
 
 
-def test_season_insert(session):
+def test_season_insert(session, year_data):
     """Season 001: Insert records into Seasons table and verify data."""
-    yr_1994 = Years(yr=1994)
-    yr_1995 = Years(yr=1995)
+    yr_1994 = Years(yr=year_data['year_94'])
+    yr_1995 = Years(yr=year_data['year_95'])
 
     season_94 = Seasons(start_year=yr_1994, end_year=yr_1994)
     season_9495 = Seasons(start_year=yr_1994, end_year=yr_1995)
@@ -138,26 +132,28 @@ def test_season_insert(session):
     session.add(season_9495)
 
     seasons_from_db = [repr(obj) for obj in session.query(Seasons).all()]
-    seasons_test = ["<Season(1994)>", "<Season(1994-1995)>"]
+    seasons_test = ["<Season({})>".format(year_data['year_94']),
+                    "<Season({}-{})>".format(year_data['year_94'], year_data['year_95'])]
 
     assert set(seasons_from_db) & set(seasons_test) == set(seasons_test)
 
 
-def test_season_multiyr_search(session):
+def test_season_multiyr_search(session, year_data):
     """Season 002: Retrieve Season record using multi-year season name."""
-    yr_1994 = Years(yr=1994)
-    yr_1995 = Years(yr=1995)
+    yr_1994 = Years(yr=year_data['year_94'])
+    yr_1995 = Years(yr=year_data['year_95'])
     season_9495 = Seasons(start_year=yr_1994, end_year=yr_1995)
     session.add(season_9495)
 
-    record = session.query(Seasons).filter(Seasons.name == '1994-1995').one()
+    record = session.query(Seasons).filter(Seasons.name == '{}-{}'.format(
+        year_data['year_94'], year_data['year_95'])).one()
     assert repr(season_9495) == repr(record)
 
 
-def test_season_multiyr_reference_date(session):
+def test_season_multiyr_reference_date(session, year_data):
     """Season 003: Verify that reference date for season across two years is June 30."""
-    yr_1994 = Years(yr=1994)
-    yr_1995 = Years(yr=1995)
+    yr_1994 = Years(yr=year_data['year_94'])
+    yr_1995 = Years(yr=year_data['year_95'])
     season_9495 = Seasons(start_year=yr_1994, end_year=yr_1995)
     session.add(season_9495)
 
@@ -165,19 +161,19 @@ def test_season_multiyr_reference_date(session):
     assert record.reference_date == date(1995, 6, 30)
 
 
-def test_season_singleyr_search(session):
+def test_season_singleyr_search(session, year_data):
     """Season 002: Retrieve Season record using multi-year season name."""
-    yr_1994 = Years(yr=1994)
+    yr_1994 = Years(yr=year_data['year_94'])
     season_94 = Seasons(start_year=yr_1994, end_year=yr_1994)
     session.add(season_94)
 
-    record = session.query(Seasons).filter(Seasons.name == '1994').one()
+    record = session.query(Seasons).filter(Seasons.name == '{}'.format(year_data['year_94'])).one()
     assert repr(season_94) == repr(record)
 
 
-def test_season_singleyr_reference_date(session):
+def test_season_singleyr_reference_date(session, year_data):
     """Season 005: Verify that reference date for season over one year is December 31."""
-    yr_1994 = Years(yr=1994)
+    yr_1994 = Years(yr=year_data['year_94'])
     season_94 = Seasons(start_year=yr_1994, end_year=yr_1994)
     session.add(season_94)
 
@@ -231,8 +227,26 @@ def test_person_nickname(session, person_data):
     assert person_from_db.official_name == u"Cristiano Ronaldo Aveiro dos Santos"
 
 
+def test_person_full_name_query(session, person_data):
+    """Person 005: Query Persons data model on full name and verify results."""
+    persons = [Persons(**data) for key, records in person_data.items()
+               for data in records if key in ['player']]
+    session.add_all(persons)
+    generic_person = Persons(**person_data['generic'])
+    session.add(generic_person)
+    session.flush()
+
+    jim_doe_in_db = session.query(Persons).filter(Persons.full_name == u"Jim Doe")
+    assert jim_doe_in_db.count() == 1
+    assert jim_doe_in_db[0].full_name == u"Jim Doe"
+
+    ronaldo_in_db = session.query(Persons).filter(Persons.full_name == u"Cristiano Ronaldo")
+    assert ronaldo_in_db.count() == 1
+    assert ronaldo_in_db[0].full_name == u"Cristiano Ronaldo"
+
+
 def test_person_age_query(session, person_data):
-    """Person 008: Verify record retrieved when Persons is queried for matching ages."""
+    """Person 006: Verify record retrieved when Persons is queried for matching ages."""
     reference_date = date(2015, 7, 1)
     persons = [Persons(**data) for key, records in person_data.items()
                for data in records if key in ['player']]

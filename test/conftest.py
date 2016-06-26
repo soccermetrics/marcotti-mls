@@ -16,11 +16,28 @@ def comp_data():
             'level': 1,
             'country': Countries(name=u"USA", confederation=ConfederationType.north_america)
         },
+        'unicode': {
+            'name': u'Süper Lig'
+        },
         'international': {
             'name': u"FIFA Club World Cup",
             'level': 1,
-            'confederation': ConfederationType.europe
+            'confederation': ConfederationType.fifa
+        },
+        'overflow': {
+            'name': u"leaguename" * 9,
+            'level': 2
         }
+    }
+
+
+@pytest.fixture
+def year_data():
+    return {
+        '90_to_94': (1990, 1994),
+        '92_to_95': (1992, 1995),
+        'year_94': 1994,
+        'year_95': 1995
     }
 
 
@@ -32,6 +49,24 @@ def season_data():
         },
         'end_year': {
             'yr': 2013
+        }
+    }
+
+
+@pytest.fixture
+def country_data():
+    return {
+        'england': {
+            'name': u'England',
+            'confederation': ConfederationType.europe
+        },
+        'ivory_coast': {
+            'name': u"Côte d'Ivoire",
+            'confederation': ConfederationType.africa
+        },
+        'overflow': {
+            'name': u"blahblahblah" * 8,
+            'confederation': ConfederationType.north_america
         }
     }
 
