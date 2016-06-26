@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Sequence, ForeignKey
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, ForeignKeyConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import CheckConstraint
 
@@ -49,9 +49,15 @@ class PlayerDrafts(AcquisitionPaths):
 
 class PlayerSalaries(BaseSchema):
     """
-    MLS player salary data model.
+    Player salary data model.
     """
     __tablename__ = 'salaries'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['competition_id', 'season_id'],
+            ['competition_seasons.competition_id', 'competition_seasons.season_id'],
+        ),
+    )
 
     id = Column(Integer, Sequence('salary_id_seq', start=10000), primary_key=True)
 
@@ -61,21 +67,24 @@ class PlayerSalaries(BaseSchema):
 
     player_id = Column(Integer, ForeignKey('players.id'))
     club_id = Column(Integer, ForeignKey('clubs.id'))
-    season_id = Column(Integer, ForeignKey('seasons.id'))
+    competition_id = Column(Integer)
+    season_id = Column(Integer)
 
     player = relationship('Players', backref=backref('salaries'))
     club = relationship('Clubs', backref=backref('payroll'))
-    season = relationship('Seasons', backref=backref('payroll'))
+    comp_season = relationship('CompetitionSeasons', backref=backref('payroll'))
 
     def __repr__(self):
-        return "<PlayerSalary(name={0}, club={1}, season={2}, base={3:.2f}, guaranteed={4:.2f})>".format(
-            self.player.full_name, self.club.name, self.season.nane, self.base_salary/100.00,
-            self.avg_guaranteed/100.00).encode('utf-8')
+        return "<PlayerSalary(name={0}, club={1}, competition={2}, season={3}, base={4:.2f}, " \
+               "guaranteed={5:.2f})>".format(self.player.full_name, self.club.name,
+                                             self.comp_season.competition.name, self.comp_season.season.name,
+                                             self.base_salary/100.00, self.avg_guaranteed/100.00).encode('utf-8')
 
     def __unicode__(self):
-        return u"<PlayerSalary(name={0}, club={1}, season={2}, base={3:.2f}, guaranteed={4:.2f})>".format(
-            self.player.full_name, self.club.name, self.season.nane, self.base_salary/100.00,
-            self.avg_guaranteed/100.00)
+        return u"<PlayerSalary(name={0}, club={1}, competition={2}, season={3}, base={4:.2f}, " \
+               u"guaranteed={5:.2f})>".format(self.player.full_name, self.club.name,
+                                              self.comp_season.competition.name, self.comp_season.season.name,
+                                              self.base_salary / 100.00, self.avg_guaranteed / 100.00)
 
 
 class PartialTenures(BaseSchema):
@@ -83,6 +92,12 @@ class PartialTenures(BaseSchema):
     Data model that captures player's partial-season tenure at a club.
     """
     __tablename__ = 'partials'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['competition_id', 'season_id'],
+            ['competition_seasons.competition_id', 'competition_seasons.season_id'],
+        ),
+    )
 
     id = Column(Integer, Sequence('partial_id_seq', start=10000), primary_key=True)
 
@@ -91,16 +106,21 @@ class PartialTenures(BaseSchema):
 
     player_id = Column(Integer, ForeignKey('players.id'))
     club_id = Column(Integer, ForeignKey('clubs.id'))
-    season_id = Column(Integer, ForeignKey('seasons.id'))
+    competition_id = Column(Integer)
+    season_id = Column(Integer)
 
     player = relationship('Players', backref=backref('partials'))
     club = relationship('Clubs', backref=backref('partials'))
-    season = relationship('Seasons', backref=backref('partials'))
+    comp_season = relationship('CompetitionSeasons', backref=backref('partials'))
 
     def __repr__(self):
-        return "<PartialTenure(name={0}, club={1}, season={2}, start_week={3}, end_week={4})>".format(
-            self.player.full_name, self.club.name, self.season.nane, self.start_week, self.end_week).encode('utf-8')
+        return "<PartialTenure(name={0}, club={1}, competition={2}, season={3}, start_week={4}, end_week={5})>".format(
+            self.player.full_name, self.club.name, self.comp_season.competition.name, self.comp_season.season.name,
+            self.start_week, self.end_week).encode('utf-8')
 
     def __unicode__(self):
-        return u"<PartialTenure(name={0}, club={1}, season={2}, start_week={3}, end_week={4})>".format(
-            self.player.full_name, self.club.name, self.season.nane, self.start_week, self.end_week)
+        return u"<PartialTenure(name={0}, club={1}, competition={2}, season={3}, " \
+               u"start_week={4}, end_week={5})>".format(self.player.full_name, self.club.name,
+                                                        self.comp_season.competition.name,
+                                                        self.comp_season.season.name,
+                                                        self.start_week, self.end_week)
