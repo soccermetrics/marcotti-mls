@@ -30,6 +30,24 @@ class LocalConfig(Config):
     START_YEAR = 1994
     END_YEAR = 2020
 
+    #
+    # ETL variables
+    #
+
+    # Competition and season names
+    COMPETITION_NAME = u''
+    SEASON_NAME = ''
+
     # Define CSV data files
-    CSV_DATA_DIR = ''
-    CSV_DATA = {}
+    CSV_DATA_DIR = r''
+    CSV_DATA = {
+        'Clubs': None,
+        'Competitions': None,
+        'Players': None,
+        'Acquisitions': None,
+        'Salaries': None,
+        'Partials': None,
+        'FieldStats': None,
+        'GkStats': None,
+        'LeaguePoints': None
+    }
