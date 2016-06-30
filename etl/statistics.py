@@ -1,0 +1,163 @@
+from etl.base import BaseCSV
+from models import *
+
+
+class MatchStatIngest(BaseCSV):
+
+    def __init__(self, session, competition, season):
+        super(MatchStatIngest, self).__init__(session)
+        self.competition_id = self.get_id(Competitions, name=competition)
+        self.season_id = self.get_id(Seasons, name=season)
+
+    @staticmethod
+    def is_empty_record(*args):
+        """Check for sparseness of statistical record.
+
+        If all quantities of a statistical record are zero, return True.
+
+        If at least one quantity of statistical record is nonzero, return False.
+        """
+        return not any([arg for arg in args])
+
+    def get_common_stats(self, **keys):
+        full_name = self.column_unicode("Full Name", **keys)
+        club_name = self.column_unicode("Team", **keys)
+        competition_name = self.column_unicode("Competition", **keys)
+        start_year = self.column_int("Year1", **keys)
+        end_year = self.column_int("Year2", **keys)
+        match_appearances = self.column_int("Gp", **keys)
+        matches_subbed = self.column_int("Sb", **keys)
+        total_minutes = self.column_int("Min", **keys)
+        yellow_cards = self.column_int("Yc", **keys)
+        red_cards = self.column_int("Rc", **keys)
+        
+        if ':' in full_name:
+            full_name, birth_date = full_name.split(':')
+            player_id = self.get_id(Players, full_name=full_name, birth_date=birth_date)
+        else:
+            player_id = self.get_id(Players, full_name=full_name)
+            
+        club_id = self.get_id(Clubs, name=club_name)
+        competition_id = self.get_id(Competitions, name=competition_name)
+        season_name = "{}" if start_year == end_year else "{}-{}".format(start_year, end_year)
+        season_id = self.get_id(Seasons, name=season_name)
+        
+        stat_dict = self.prepare_db_dict(
+            ['player_id', 'club_id', 'competition_id', 'season_id', 'appearances', 
+             'substituted', 'minutes', 'yellows', 'reds'], 
+            [player_id, club_id, competition_id, season_id, match_appearances,
+             matches_subbed, total_minutes, yellow_cards, red_cards])
+        return stat_dict
+
+    def parse_file(self, rows):
+        raise NotImplementedError
+
+
+class FieldStatIngest(MatchStatIngest):
+    
+    def parse_file(self, rows):
+        ingestion_list = []
+        for keys in rows:
+            common_stat_dict = self.get_common_stats(**keys)
+
+            total_goals = self.column_int("Gl", **keys)
+            headed_goals = self.column_int("Hd", **keys)
+            freekick_goals = self.column_int("Fk", **keys)
+            in_box_goals = self.column_int("In", **keys)
+            out_box_goals = self.column_int("Out", **keys)
+            game_winning_goals = self.column_int("Gw", **keys)
+            penalty_goals = self.column_int("Pn", **keys)
+            total_penalties = self.column_int("Pa", **keys)
+            assists = self.column_int("As", **keys)
+            deadball_assists = self.column_int("Dd", **keys)
+            shots = self.column_int("Sht", **keys)
+            fouls = self.column_int("Fls", **keys)
+
+            field_stat_dict = self.prepare_db_dict(
+                ['goals_total', 'goals_headed', 'goals_freekick', 'goals_in_area', 'goals_out_area',
+                 'goals_winners', 'goals_penalty', 'penalties_taken', 'assists_total', 'assists_deadball',
+                 'shots_total', 'fouls_total'],
+                [total_goals, headed_goals, freekick_goals, in_box_goals, out_box_goals,
+                 game_winning_goals, penalty_goals, total_penalties, assists, deadball_assists,
+                 shots, fouls]
+            )
+            field_stat_dict.update(common_stat_dict)
+
+            if field_stat_dict is not None:
+                if not self.record_exists(FieldPlayerStats, **field_stat_dict):
+                    stat_record = FieldPlayerStats(**field_stat_dict)
+                    ingestion_list.append(stat_record)
+                    if len(ingestion_list) == 50:
+                        self.session.add_all(ingestion_list)
+                        self.session.commit()
+                        ingestion_list = []
+        if len(ingestion_list) != 0:
+            self.session.add_all(ingestion_list)
+            self.session.commit()
+
+
+class GoalkeeperStatIngest(MatchStatIngest):
+
+    def parse_file(self, rows):
+        ingestion_list = []
+        for keys in rows:
+            common_stat_dict = self.get_common_stats(**keys)
+
+            wins = self.column_int("Wn", **keys)
+            draws = self.column_int("Dr", **keys)
+            losses = self.column_int("Ls", **keys)
+            goals_allowed = self.column_int("Ga", **keys)
+            clean_sheets = self.column_int("Cs", **keys)
+            shots_allowed = self.column_int("Sht", **keys)
+
+            gk_stat_dict = self.prepare_db_dict(
+                ['wins', 'draws', 'losses', 'goals_allowed', 'shots_allowed', 'clean_sheets'],
+                [wins, draws, losses, goals_allowed, clean_sheets, shots_allowed]
+            )
+            gk_stat_dict.update(common_stat_dict)
+
+            if gk_stat_dict is not None:
+                if not self.record_exists(GoalkeeperStats, **gk_stat_dict):
+                    stat_record = GoalkeeperStats(**gk_stat_dict)
+                    ingestion_list.append(stat_record)
+                    if len(ingestion_list) == 50:
+                        self.session.add_all(ingestion_list)
+                        self.session.commit()
+                        ingestion_list = []
+        if len(ingestion_list) != 0:
+            self.session.add_all(ingestion_list)
+            self.session.commit()
+
+
+class LeaguePointIngest(BaseCSV):
+
+    def __init__(self, session, competition, season):
+        super(LeaguePointIngest, self).__init__(session)
+        self.competition_id = self.get_id(Competitions, name=competition)
+        self.season_id = self.get_id(Seasons, name=season)
+
+    def parse_file(self, rows):
+        ingestion_list = []
+        for keys in rows:
+            club_symbol = self.column("Club Symbol", **keys)
+            club_name = self.column_unicode("Club", **keys)
+            matches_played = self.column_int("GP", **keys)
+            points = self.column_int("Pts", **keys)
+
+            club_dict = {field: value for (field, value)
+                         in zip(['name', 'symbol'], [club_name, club_symbol])
+                         if value is not None}
+            club_id = self.get_id(Clubs, **club_dict)
+
+            club_season_dict = dict(club_id=club_id, competition_id=self.competition_id, season_id=self.season_id)
+            if not self.record_exists(LeaguePoints, **club_season_dict):
+                point_record_dict = dict(played=matches_played, points=points)
+                point_record_dict.update(club_season_dict)
+                ingestion_list.append(point_record_dict)
+                if len(ingestion_list) == 10:
+                    self.session.add_all(ingestion_list)
+                    self.session.commit()
+                    ingestion_list = []
+        if len(ingestion_list) != 0:
+            self.session.add_all(ingestion_list)
+            self.session.commit()
