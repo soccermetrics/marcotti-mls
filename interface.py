@@ -4,6 +4,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session
 
 from models import BaseSchema
+from etl import create_seasons, ingest_feeds, get_local_handles, CountryIngest
 
 
 class Marcotti(object):
@@ -16,9 +17,15 @@ class Marcotti(object):
 
     def create_db(self):
         """
-        Create database tables from models defined in schema.
+        Create database tables from models defined in schema and populate validation tables.
         """
+        print "Creating schemas..."
         BaseSchema.metadata.create_all(self.connection)
+        print "Populating seasons and countries..."
+        with self.create_session() as sess:
+            create_seasons(sess, self.start_year, self.end_year)
+            ingest_feeds(get_local_handles, 'data', 'countries.csv', CountryIngest(sess))
+        print "Ingestion complete."
 
     @contextmanager
     def create_session(self):
