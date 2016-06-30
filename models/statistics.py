@@ -19,11 +19,11 @@ class CommonStats(BaseSchema):
 
     id = Column(Integer, Sequence('stat_id_seq', start=100000), primary_key=True)
 
-    appearances = Column(Integer, CheckConstraint('appearances >= 0'), default=0)
-    substituted = Column(Integer, CheckConstraint('substituted >= 0'), default=0)
-    minutes = Column(Integer, CheckConstraint('minutes >= 0'), default=0)
-    yellows = Column(Integer, CheckConstraint('yellows >= 0'), default=0)
-    reds = Column(Integer, CheckConstraint('reds >= 0'), default=0)
+    appearances = Column(Integer)
+    substituted = Column(Integer)
+    minutes = Column(Integer)
+    yellows = Column(Integer)
+    reds = Column(Integer)
     type = Column(String)
 
     player_id = Column(Integer, ForeignKey('players.id'))
@@ -52,18 +52,18 @@ class FieldPlayerStats(CommonStats):
 
     id = Column(Integer, ForeignKey('common_stats.id'), primary_key=True)
 
-    goals_total = Column(Integer, CheckConstraint('goals_total >= 0'), default=0)
-    goals_headed = Column(Integer, CheckConstraint('goals_headed >= 0'), default=0)
-    goals_freekick = Column(Integer, CheckConstraint('goals_freekick >= 0'), default=0)
-    goals_in_area = Column(Integer, CheckConstraint('goals_in_area >= 0'), default=0)
-    goals_out_area = Column(Integer, CheckConstraint('goals_out_area >= 0'), default=0)
-    goals_winners = Column(Integer, CheckConstraint('goals_winners >= 0'), default=0)
-    goals_penalty = Column(Integer, CheckConstraint('goals_penalty >= 0'), default=0)
-    penalties_taken = Column(Integer, CheckConstraint('penalties_taken >= 0'), default=0)
-    assists_total = Column(Integer, CheckConstraint('assists_total >= 0'), default=0)
-    assists_deadball = Column(Integer, CheckConstraint('assists_deadball >= 0'), default=0)
-    shots_total = Column(Integer, CheckConstraint('shots_total >= 0'), default=0)
-    fouls_total = Column(Integer, CheckConstraint('fouls_total >= 0'), default=0)
+    goals_total = Column(Integer)
+    goals_headed = Column(Integer)
+    goals_freekick = Column(Integer)
+    goals_in_area = Column(Integer)
+    goals_out_area = Column(Integer)
+    goals_winners = Column(Integer)
+    goals_penalty = Column(Integer)
+    penalties_taken = Column(Integer)
+    assists_total = Column(Integer)
+    assists_deadball = Column(Integer)
+    shots_total = Column(Integer)
+    fouls_total = Column(Integer)
 
 
 class GoalkeeperStats(CommonStats):
@@ -75,15 +75,15 @@ class GoalkeeperStats(CommonStats):
 
     id = Column(Integer, ForeignKey('common_stats.id'), primary_key=True)
 
-    wins = Column(Integer, CheckConstraint('wins >= 0'), default=0)
-    draws = Column(Integer, CheckConstraint('draws >= 0'), default=0)
-    losses = Column(Integer, CheckConstraint('losses >= 0'), default=0)
-    goals_allowed = Column(Integer, CheckConstraint('goals_allowed >= 0'), default=0)
-    shots_allowed = Column(Integer, CheckConstraint('shots_allowed >= 0'), default=0)
-    clean_sheets = Column(Integer, CheckConstraint('clean_sheets >= 0'), default=0)
+    wins = Column(Integer)
+    draws = Column(Integer)
+    losses = Column(Integer)
+    goals_allowed = Column(Integer)
+    shots_allowed = Column(Integer)
+    clean_sheets = Column(Integer)
 
 
-class LeagueCompetitionPoints(BaseSchema):
+class LeaguePoints(BaseSchema):
     """
     Data model of points earned in league competitions.
     """
