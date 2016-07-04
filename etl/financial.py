@@ -1,8 +1,8 @@
 import logging
 
 from models import (Countries, Players, PlayerSalaries, PartialTenures, AcquisitionPaths,
-                    AcquisitionType, PlayerDrafts, Clubs, Competitions, Seasons, Years)
-from etl import BaseCSV, PersonIngest
+                    AcquisitionType, PlayerDrafts, Clubs, Years)
+from etl import PersonIngest, SeasonalDataIngest
 
 
 logger = logging.getLogger(__name__)
@@ -62,12 +62,7 @@ class AcquisitionIngest(PersonIngest):
         return PlayerDrafts(round=draft_round, selection=draft_selection, **acq_tuple)
 
 
-class PlayerSalaryIngest(BaseCSV):
-
-    def __init__(self, session, competition, season):
-        super(PlayerSalaryIngest, self).__init__(session)
-        self.competition_id = self.get_id(Competitions, name=competition)
-        self.season_id = self.get_id(Seasons, name=season)
+class PlayerSalaryIngest(SeasonalDataIngest):
 
     def parse_file(self, rows):
         inserts = 0
@@ -78,26 +73,24 @@ class PlayerSalaryIngest(BaseCSV):
             last_name = self.column_unicode("Last Name", **keys)
             first_name = self.column_unicode("First Name", **keys)
             base_salary = int(self.column_float("Base", **keys) * 100)
-            supp_salary = int(self.column_float("Supp", **keys) * 100)
+            guar_salary = int(self.column_float("Guaranteed", **keys) * 100)
 
-            full_name = " ".join([first_name, last_name])
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
-                logger.error("Cannot insert Salary record for {}: "
-                             "Club {} not in database".format(full_name, club_symbol))
+                logger.error("Cannot insert Salary record for {} {}: "
+                             "Club {} not in database".format(first_name, last_name, club_symbol))
                 continue
-            player_id = self.get_id(Players, full_name=full_name)
+            player_id = self.get_player_from_name(first_name, last_name)
             if player_id is None:
-                logger.error("Cannot insert Salary record for {}: "
-                             "Player not in database".format(full_name))
+                logger.error("Cannot insert Salary record for {} {}: "
+                             "Player not in database".format(first_name, last_name))
                 continue
 
             salary_dict = dict(player_id=player_id, club_id=club_id,
-                                competition_id=self.competition_id,
-                                season_id=self.season_id)
+                               competition_id=self.competition_id, season_id=self.season_id)
             if not self.record_exists(PlayerSalaries, **salary_dict):
                 insertion_list.append(PlayerSalaries(base_salary=base_salary,
-                                                     avg_guaranteed=supp_salary,
+                                                     avg_guaranteed=guar_salary,
                                                      **salary_dict))
                 inserted, insertion_list = self.bulk_insert(insertion_list, 100)
                 inserts += inserted
@@ -108,34 +101,28 @@ class PlayerSalaryIngest(BaseCSV):
         logger.info("Player Salary Ingestion complete.")
 
 
-class PartialTenureIngest(BaseCSV):
-
-    def __init__(self, session, competition, season):
-        super(PartialTenureIngest, self).__init__(session)
-        self.competition_id = self.get_id(Competitions, name=competition)
-        self.season_id = self.get_id(Seasons, name=season)
+class PartialTenureIngest(SeasonalDataIngest):
 
     def parse_file(self, rows):
         inserts = 0
         insertion_list = []
         logger.info("Ingesting Partial Tenure records...")
         for keys in rows:
-            club_symbol = self.column("Team", **keys)
+            club_symbol = self.column("Team Symbol", **keys)
             last_name = self.column_unicode("Last Name", **keys)
             first_name = self.column_unicode("First Name", **keys)
             start_week = self.column_int("Start Term", **keys)
             end_week = self.column_int("End Term", **keys)
 
-            full_name = " ".join([first_name, last_name])
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
-                logger.error("Cannot insert Partial Tenure record for {}: "
-                             "Club {} not in database".format(full_name, club_symbol))
+                logger.error("Cannot insert Partial Tenure record for {} {}: "
+                             "Club {} not in database".format(first_name, last_name, club_symbol))
                 continue
-            player_id = self.get_id(Players, full_name=full_name)
+            player_id = self.get_player_from_name(first_name, last_name)
             if player_id is None:
-                logger.error("Cannot insert Partial Tenure record for {}: "
-                             "Player not in database".format(full_name))
+                logger.error("Cannot insert Partial Tenure record for {} {}: "
+                             "Player not in database".format(first_name, last_name))
                 continue
 
             partials_dict = dict(player_id=player_id, club_id=club_id,
@@ -148,7 +135,7 @@ class PartialTenureIngest(BaseCSV):
                 inserted, insertion_list = self.bulk_insert(insertion_list, 10)
                 inserts += inserted
         self.session.add_all(insertion_list)
-        self.session.comit()
+        self.session.commit()
         inserts += len(insertion_list)
         logger.info("Total {} Partial Tenure records inserted and committed to database".format(inserts))
         logger.info("Partial Tenure Ingestion complete.")

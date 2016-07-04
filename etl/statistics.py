@@ -101,7 +101,8 @@ class MatchStatIngest(BaseCSV):
 class FieldStatIngest(MatchStatIngest):
     
     def parse_file(self, rows):
-        ingestion_list = []
+        inserts = 0
+        insertion_list = []
         for keys in rows:
             common_stat_dict = self.get_common_stats(**keys)
 
@@ -130,21 +131,21 @@ class FieldStatIngest(MatchStatIngest):
 
             if field_stat_dict is not None:
                 if not self.record_exists(FieldPlayerStats, **field_stat_dict):
-                    stat_record = FieldPlayerStats(**field_stat_dict)
-                    ingestion_list.append(stat_record)
-                    if len(ingestion_list) == 50:
-                        self.session.add_all(ingestion_list)
-                        self.session.commit()
-                        ingestion_list = []
-        if len(ingestion_list) != 0:
-            self.session.add_all(ingestion_list)
-            self.session.commit()
+                    insertion_list.append(FieldPlayerStats(**field_stat_dict))
+                    inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                    inserts += inserted
+        self.session.add_all(insertion_list)
+        self.session.commit()
+        inserts += len(insertion_list)
+        logger.info("Total {} Field Player Statistics records inserted and committed to database".format(inserts))
+        logger.info("Field Player Statistics Ingestion complete.")
 
 
 class GoalkeeperStatIngest(MatchStatIngest):
 
     def parse_file(self, rows):
-        ingestion_list = []
+        inserts = 0
+        insertion_list = []
         for keys in rows:
             common_stat_dict = self.get_common_stats(**keys)
 
@@ -164,25 +165,21 @@ class GoalkeeperStatIngest(MatchStatIngest):
             if gk_stat_dict is not None:
                 if not self.record_exists(GoalkeeperStats, **gk_stat_dict):
                     stat_record = GoalkeeperStats(**gk_stat_dict)
-                    ingestion_list.append(stat_record)
-                    if len(ingestion_list) == 50:
-                        self.session.add_all(ingestion_list)
-                        self.session.commit()
-                        ingestion_list = []
-        if len(ingestion_list) != 0:
-            self.session.add_all(ingestion_list)
-            self.session.commit()
+                    insertion_list.append(stat_record)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                    inserts += inserted 
+        self.session.add_all(insertion_list)
+        self.session.commit()
+        inserts += len(insertion_list)
+        logger.info("Total {} Goalkeeper Statistics records inserted and committed to database".format(inserts))
+        logger.info("Goalkeeper Statistics Ingestion complete.")
 
 
-class LeaguePointIngest(BaseCSV):
-
-    def __init__(self, session, competition, season):
-        super(LeaguePointIngest, self).__init__(session)
-        self.competition_id = self.get_id(Competitions, name=competition)
-        self.season_id = self.get_id(Seasons, name=season)
+class LeaguePointIngest(SeasonalDataIngest):
 
     def parse_file(self, rows):
-        ingestion_list = []
+        inserts = 0
+        insertion_list = []
         for keys in rows:
             club_symbol = self.column("Club Symbol", **keys)
             club_name = self.column_unicode("Club", **keys)
@@ -193,16 +190,20 @@ class LeaguePointIngest(BaseCSV):
                          in zip(['name', 'symbol'], [club_name, club_symbol])
                          if value is not None}
             club_id = self.get_id(Clubs, **club_dict)
+            if club_id is None:
+                logger.error("Cannot insert LeaguePoint record: "
+                             "Database error involving {}".format(club_dict))
+                continue
 
             club_season_dict = dict(club_id=club_id, competition_id=self.competition_id, season_id=self.season_id)
             if not self.record_exists(LeaguePoints, **club_season_dict):
                 point_record_dict = dict(played=matches_played, points=points)
                 point_record_dict.update(club_season_dict)
-                ingestion_list.append(point_record_dict)
-                if len(ingestion_list) == 10:
-                    self.session.add_all(ingestion_list)
-                    self.session.commit()
-                    ingestion_list = []
-        if len(ingestion_list) != 0:
-            self.session.add_all(ingestion_list)
-            self.session.commit()
+                insertion_list.append(point_record_dict)
+                inserted, insertion_list = self.bulk_insert(insertion_list, 10)
+                inserts += inserted
+        self.session.add_all(insertion_list)
+        self.session.commit()
+        inserts += len(insertion_list)
+        logger.info("Total {} League Point records inserted and committed to database".format(inserts))
+        logger.info("League Point Ingestion complete.")
