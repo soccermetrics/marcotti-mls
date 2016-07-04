@@ -1,31 +1,59 @@
+import os
+import re
+import sys
+import logging
 from contextlib import contextmanager
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session
 
+from local import LocalConfig
 from models import BaseSchema
 from etl import create_seasons, ingest_feeds, get_local_handles, CountryIngest
+
+
+__version__ = ('0', '7', '0')
+
+LOG_FORMAT = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
+ch = logging.FileHandler(os.path.join(LocalConfig().LOG_DIR, 'marcotti.log'))
+ch.setLevel(logging.INFO)
+ch.setFormatter(LOG_FORMAT)
+
+logger = logging.getLogger('marcotti-interface')
+logger.setLevel(logging.INFO)
+logger.addHandler(ch)
 
 
 class Marcotti(object):
 
     def __init__(self, config):
-        self.engine = create_engine(config.DATABASE_URI)
+        logger.info("Marcotti-MLS v{0}: Python {1} on {2}".format(
+            '.'.join(__version__), sys.version, sys.platform))
+        logger.info("Opened connection to {0}".format(self._public_db_uri(config.database_uri)))
+        self.engine = create_engine(config.database_uri)
         self.connection = self.engine.connect()
         self.start_year = config.START_YEAR
         self.end_year = config.END_YEAR
+
+    @staticmethod
+    def _public_db_uri(uri):
+        """
+        Strip out database username/password from database URI.
+
+        :param uri: Database URI string.
+        :return: Database URI with username/password removed.
+        """
+        return re.sub(r"//.*@", "//", uri)
 
     def create_db(self):
         """
         Create database tables from models defined in schema and populate validation tables.
         """
-        print "Creating schemas..."
+        logger.info("Creating data models...")
         BaseSchema.metadata.create_all(self.connection)
-        print "Populating seasons and countries..."
         with self.create_session() as sess:
             create_seasons(sess, self.start_year, self.end_year)
             ingest_feeds(get_local_handles, 'data', 'countries.csv', CountryIngest(sess))
-        print "Ingestion complete."
 
     @contextmanager
     def create_session(self):
@@ -36,13 +64,18 @@ class Marcotti(object):
         rollback the session.
         """
         session = Session(self.connection)
+        logger.info("Create session {0} with {1}".format(
+            id(session), self._public_db_uri(str(self.engine.url))))
         try:
             yield session
             session.commit()
-        except Exception as ex:
+            logger.info("Commit transactions to database")
+        except Exception:
             session.rollback()
-            raise ex
+            logger.exception("Database transactions rolled back")
         finally:
+            logger.info("Session {0} with {1} closed".format(
+                id(session), self._public_db_uri(str(self.engine.url))))
             session.close()
 
 
