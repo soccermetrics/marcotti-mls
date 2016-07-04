@@ -2,8 +2,9 @@ import re
 import logging
 from datetime import date
 
-from models import (Countries, Clubs, DomesticCompetitions, InternationalCompetitions,
-                    Persons, Players, NameOrderType, PositionType, ConfederationType)
+from models import (Countries, Clubs, Competitions, DomesticCompetitions, InternationalCompetitions,
+                    Seasons, CompetitionSeasons, Persons, Players, NameOrderType, PositionType,
+                    ConfederationType)
 from etl.base import BaseCSV
 
 
@@ -80,6 +81,44 @@ class CompetitionIngest(BaseCSV):
         inserts += len(insertion_list)
         logger.info("Total {} Competition records inserted and committed to database".format(inserts))
         logger.info("Competition Ingestion complete.")
+
+
+class CompetitionSeasonIngest(BaseCSV):
+
+    def parse_file(self, rows):
+        inserts = 0
+        insertion_list = []
+        for keys in rows:
+            competition_name = self.column("Competition", **keys)
+            season_name = self.column("Season", **keys)
+            start_date_iso = self.column("Start", **keys)
+            end_date_iso = self.column("End", **keys)
+            matchdays = self.column_int("Matchdays", **keys)
+
+            start_date = date(*tuple(int(x) for x in start_date_iso.split('-'))) if start_date_iso else None
+            end_date = date(*tuple(int(x) for x in end_date_iso.split('-'))) if end_date_iso else None
+
+            competition_id = self.get_id(Competitions, name=competition_name)
+            if competition_id is None:
+                logger.error("Cannot insert Competition Season record: "
+                             "Competition {} not in database".format(competition_name))
+                continue
+            season_id = self.get_id(Seasons, name=season_name)
+            if season_id is None:
+                logger.error("Cannot insert Competition Season record: "
+                             "Season {} not in database".format(season_name))
+                continue
+            compseason_dict = dict(competition_id=competition_id, season_id=season_id, start_date=start_date,
+                                   end_date=end_date, matchdays=matchdays)
+            if not self.record_exists(CompetitionSeasons, **compseason_dict):
+                insertion_list.append(CompetitionSeasons(**compseason_dict))
+                inserted, insertion_list = self.bulk_insert(insertion_list, 5)
+                inserts += inserted
+        self.session.add_all(insertion_list)
+        self.session.commit()
+        inserts += len(insertion_list)
+        logger.info("Total {} Competition Season records inserted and committed to database".format(inserts))
+        logger.info("Competition Season Ingestion complete.")
 
 
 class ClubIngest(BaseCSV):
