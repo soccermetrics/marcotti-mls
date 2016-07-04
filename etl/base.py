@@ -1,10 +1,14 @@
 import os
 import csv
 import glob
+import logging
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from models import Seasons, Years
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseIngest(object):
@@ -13,19 +17,52 @@ class BaseIngest(object):
         self.session = session
 
     def get_id(self, model, **conditions):
+        """
+        Retrieve unique ID of record in database model that satisfies conditions.
 
+        If no unique record exists, communicate error in log file and return None.
+
+        :param model: Marcotti-MLS data model.
+        :param conditions: Dictionary of fields/values that describe a record in model.
+        :return: Unique ID of database record.
+        """
+        record_id = None
         try:
             record_id = self.session.query(model).filter_by(**conditions).one().id
-        except NoResultFound as ex:
-            print "{} has no records in Marcotti database for: {}".format(model.__name__, conditions)
-            raise ex
-        except MultipleResultsFound as ex:
-            print "{} has multiple records in Marcotti database for: {}".format(model.__name__, conditions)
-            raise ex
+        except NoResultFound:
+            logger.error("{} has no records in Marcotti database for: {}".format(model.__name__, conditions))
+        except MultipleResultsFound:
+            logger.error("{} has multiple records in Marcotti database for: {}".format(model.__name__, conditions))
         return record_id
 
     def record_exists(self, model, **conditions):
+        """
+        Check for existence of specific record in database.
+
+        :param model: Marcotti-MLS data model.
+        :param conditions: Dictionary of fields/values that describe a record in model.
+        :return: Boolean value for existence of record in database.
+        """
         return self.session.query(model).filter_by(**conditions).count() != 0
+
+    def bulk_insert(self, record_list, threshold):
+        """
+        Add list of data models to database transaction if enough models are present.
+
+        After bulk insertion, list is reset to empty.
+
+        :param record_list: List of SQLAlchemy objects
+        :param threshold: Number of objects in list required to bulk insertions
+        :return: tuple of (number of records inserted, list of objects)
+        """
+        if len(record_list) != threshold:
+            inserted = 0
+        else:
+            self.session.add_all(record_list)
+            self.session.commit()
+            record_list = []
+            inserted = threshold
+        return inserted, record_list
 
     @staticmethod
     def prepare_db_dict(fields, values):
@@ -129,29 +166,47 @@ def create_seasons(session, start_yr, end_yr):
     def exists(model, **conditions):
         return session.query(model).filter_by(**conditions).count() != 0
 
-    print "Creating Seasons..."
+    logger.info("Creating Years between {0} and {1}...".format(start_yr, end_yr))
 
     year_range = range(start_yr, end_yr+1)
-
     for yr in year_range:
         if not exists(Years, yr=yr):
             session.add(Years(yr=yr))
     session.commit()
     session.flush()
 
+    logger.info("Creating Seasons...")
+
+    # insert calendar year season record
+    for year in year_range:
+        try:
+            yr_obj = session.query(Years).filter_by(yr=year).one()
+        except NoResultFound:
+            logger.error("Cannot insert Season record: {} not in database".format(year))
+            continue
+        except MultipleResultsFound:
+            logger.error("Cannot insert Season record: multiple {} records in database".format(year))
+            continue
+        if not exists(Seasons, start_year=yr_obj, end_year=yr_obj):
+            logger.info("Creating record for {0} season".format(yr_obj.yr))
+            season_record = Seasons(start_year=yr_obj, end_year=yr_obj)
+            session.add(season_record)
+
+    # insert European season record
     for start, end in zip(year_range[:-1], year_range[1:]):
         try:
             start_yr_obj = session.query(Years).filter_by(yr=start).one()
             end_yr_obj = session.query(Years).filter_by(yr=end).one()
-        except (NoResultFound, MultipleResultsFound):
+        except NoResultFound:
+            logger.error("Cannot insert Season record: {} or {} not in database".format(start, end))
             continue
-        # insert calendar year season record
-        if not exists(Seasons, start_year=start_yr_obj, end_year=start_yr_obj):
-            season_record = Seasons(start_year=start_yr_obj, end_year=start_yr_obj)
-            session.add(season_record)
-        # insert European season record
+        except MultipleResultsFound:
+            logger.error("Cannot insert Season record: multiple {} or {} records in database".format(start, end))
+            continue
         if not exists(Seasons, start_year=start_yr_obj, end_year=end_yr_obj):
+            logger.info("Creating record for {0}-{1} season".format(start_yr_obj.yr, end_yr_obj.yr))
             season_record = Seasons(start_year=start_yr_obj, end_year=end_yr_obj)
             session.add(season_record)
     session.commit()
-    print "Season creation complete."
+    logger.info("Season records committed to database")
+    logger.info("Season creation complete.")
