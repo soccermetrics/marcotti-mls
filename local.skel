@@ -31,6 +31,12 @@ class LocalConfig(Config):
     END_YEAR = 2020
 
     #
+    # Logging configuration variables
+    #
+
+    LOG_DIR = r'/home/howard'
+
+    #
     # ETL variables
     #
 
