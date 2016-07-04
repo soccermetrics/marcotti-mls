@@ -1,13 +1,58 @@
-from etl.base import BaseCSV
+import logging
+
+from etl.base import BaseCSV, SeasonalDataIngest
 from models import *
 
 
-class MatchStatIngest(BaseCSV):
+logger = logging.getLogger(__name__)
 
-    def __init__(self, session, competition, season):
-        super(MatchStatIngest, self).__init__(session)
-        self.competition_id = self.get_id(Competitions, name=competition)
-        self.season_id = self.get_id(Seasons, name=season)
+
+class PlayerMinuteIngest(SeasonalDataIngest):
+    """
+    Ingestion methods for data files containing player minutes.
+    """
+    
+    def parse_file(self, rows):
+        inserts = 0
+        insertion_list = []
+        logger.info("Ingesting Player Minutes...")
+        for keys in rows:
+            club_symbol = self.column("Team Symbol", **keys)
+            last_name = self.column_unicode("Last Name", **keys)
+            first_name = self.column_unicode("First Name", **keys)
+            total_minutes = self.column_int("Mins", **keys)
+
+            club_id = self.get_id(Clubs, symbol=club_symbol)
+            if club_id is None:
+                logger.error("Cannot insert Player Minutes record for {} {}: "
+                             "Club {} not in database".format(first_name, last_name, club_symbol))
+                continue
+            player_id = self.get_player_from_name(first_name, last_name)
+            if player_id is None:
+                logger.error("Cannot insert Player Minutes record for {} {}: "
+                             "Player not in database".format(first_name, last_name))
+                continue
+
+            stat_dict = self.prepare_db_dict(
+                ['player_id', 'club_id', 'competition_id', 'season_id', 'minutes'],
+                [player_id, club_id, self.competition_id, self.season_id, total_minutes])
+            if not self.record_exists(FieldPlayerStats, **stat_dict):
+                insertion_list.append(FieldPlayerStats(**stat_dict))
+                inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                inserts += inserted
+        self.session.add_all(insertion_list)
+        self.session.commit()
+        inserts += len(insertion_list)
+        logger.info("Total {} Player Minutes records inserted and committed to database".format(inserts))
+        logger.info("Player Minutes Ingestion complete.")
+
+
+class MatchStatIngest(BaseCSV):
+    """
+    Ingestion methods for data files containing season statistics.
+    
+    Assume categories and nomenclature of Nielsen soccer database.
+    """
 
     @staticmethod
     def is_empty_record(*args):
