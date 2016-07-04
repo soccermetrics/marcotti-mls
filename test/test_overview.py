@@ -258,3 +258,11 @@ def test_person_age_query(session, person_data):
     son_hm = records.all()[0]
     assert son_hm.age(reference_date) == 22
     assert son_hm.exact_age(reference_date) == (22, 358)
+
+
+def test_player_insert(session):
+    raise NotImplementedError
+
+
+def test_player_multiple_positions(session):
+    raise NotImplementedError
