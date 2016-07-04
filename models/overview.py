@@ -342,7 +342,7 @@ class Players(Persons):
     id = Column(Integer, Sequence('player_id_seq', start=100000), primary_key=True)
     person_id = Column(Integer, ForeignKey('persons.person_id'))
 
-    primary_position = Column(enums.PositionType.db_type())
+    primary_position = Column(enums.PositionType.db_type(), default=enums.PositionType.unknown)
     secondary_position = Column(enums.PositionType.db_type())
 
     def __repr__(self):
