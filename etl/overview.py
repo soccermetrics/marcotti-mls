@@ -100,13 +100,13 @@ class CompetitionSeasonIngest(BaseCSV):
 
             competition_id = self.get_id(Competitions, name=competition_name)
             if competition_id is None:
-                logger.error("Cannot insert Competition Season record: "
-                             "Competition {} not in database".format(competition_name))
+                logger.error(u"Cannot insert Competition Season record: "
+                             u"Competition {} not in database".format(competition_name))
                 continue
             season_id = self.get_id(Seasons, name=season_name)
             if season_id is None:
-                logger.error("Cannot insert Competition Season record: "
-                             "Season {} not in database".format(season_name))
+                logger.error(u"Cannot insert Competition Season record: "
+                             u"Season {} not in database".format(season_name))
                 continue
             compseason_dict = dict(competition_id=competition_id, season_id=season_id, start_date=start_date,
                                    end_date=end_date, matchdays=matchdays)
