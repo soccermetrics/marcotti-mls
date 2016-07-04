@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from models import Countries, ConfederationType, NameOrderType
+from models import Countries, ConfederationType, NameOrderType, PositionType
 
 
 @pytest.fixture
@@ -37,7 +37,9 @@ def year_data():
         '90_to_94': (1990, 1994),
         '92_to_95': (1992, 1995),
         'year_94': 1994,
-        'year_95': 1995
+        'year_95': 1995,
+        'year_05': 2005,
+        'year_11': 2011
     }
 
 
@@ -109,6 +111,25 @@ def person_data():
                 'order': NameOrderType.eastern
             }
         ],
+    }
+
+
+@pytest.fixture
+def position_data():
+    return {
+        'doe': {
+            'primary_position': PositionType.goalkeeper
+        },
+        'ponce': {
+            'primary_position': PositionType.defender
+        },
+        'ronaldo': {
+            'primary_position': PositionType.midfielder,
+            'secondary_position': PositionType.forward
+        },
+        'son': {
+            'primary_position': PositionType.forward
+        }
     }
 
 
