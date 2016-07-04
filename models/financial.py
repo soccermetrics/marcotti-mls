@@ -61,8 +61,8 @@ class PlayerSalaries(BaseSchema):
 
     id = Column(Integer, Sequence('salary_id_seq', start=10000), primary_key=True)
 
-    base_salary = Column(Integer, CheckConstraint('base_salary > 0'), doc="Base salary in cents")
-    avg_guaranteed = Column(Integer, CheckConstraint('avg_guaranteed > 0'),
+    base_salary = Column(Integer, CheckConstraint('base_salary >= 0'), doc="Base salary in cents")
+    avg_guaranteed = Column(Integer, CheckConstraint('avg_guaranteed >= 0'),
                             doc="Average annualized guaranteed compensation in cents")
 
     player_id = Column(Integer, ForeignKey('players.id'))
