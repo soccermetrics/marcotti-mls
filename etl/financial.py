@@ -26,19 +26,19 @@ class AcquisitionIngest(PersonIngest):
                 acquisition_path = None
             country_id = self.get_id(Countries, name=country_name)
             if country_id is None:
-                logger.error("Cannot insert Acquisition record for {}: "
-                             "Database error involving Country record {}".format(person_dict, country_name))
+                logger.error(u"Cannot insert Acquisition record for {}: "
+                             u"Database error involving Country record {}".format(person_dict, country_name))
                 continue
             year_id = self.get_id(Years, yr=acquisition_year)
             if year_id is None:
-                logger.error("Cannot insert Acquisition record for {}: "
-                             "Database error involving Year record {}".format(person_dict, acquisition_year))
+                logger.error(u"Cannot insert Acquisition record for {}: "
+                             u"Database error involving Year record {}".format(person_dict, acquisition_year))
                 continue
             player_dict = dict(country_id=country_id, **person_dict)
             player_id = self.get_id(Players, **player_dict)
             if player_id is None:
-                logger.error("Cannot insert Acquisition record for {}: "
-                             "Database error involving Player record".format(player_dict))
+                logger.error(u"Cannot insert Acquisition record for {}: "
+                             u"Database error involving Player record".format(player_dict))
                 continue
 
             acquisition_dict = dict(player_id=player_id, year_id=year_id)
@@ -77,13 +77,13 @@ class PlayerSalaryIngest(SeasonalDataIngest):
 
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
-                logger.error("Cannot insert Salary record for {} {}: "
-                             "Club {} not in database".format(first_name, last_name, club_symbol))
+                logger.error(u"Cannot insert Salary record for {} {}: "
+                             u"Club {} not in database".format(first_name, last_name, club_symbol))
                 continue
             player_id = self.get_player_from_name(first_name, last_name)
             if player_id is None:
-                logger.error("Cannot insert Salary record for {} {}: "
-                             "Player not in database".format(first_name, last_name))
+                logger.error(u"Cannot insert Salary record for {} {}: "
+                             u"Player not in database".format(first_name, last_name))
                 continue
 
             salary_dict = dict(player_id=player_id, club_id=club_id,
@@ -116,13 +116,13 @@ class PartialTenureIngest(SeasonalDataIngest):
 
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
-                logger.error("Cannot insert Partial Tenure record for {} {}: "
-                             "Club {} not in database".format(first_name, last_name, club_symbol))
+                logger.error(u"Cannot insert Partial Tenure record for {} {}: "
+                             u"Club {} not in database".format(first_name, last_name, club_symbol))
                 continue
             player_id = self.get_player_from_name(first_name, last_name)
             if player_id is None:
-                logger.error("Cannot insert Partial Tenure record for {} {}: "
-                             "Player not in database".format(first_name, last_name))
+                logger.error(u"Cannot insert Partial Tenure record for {} {}: "
+                             u"Player not in database".format(first_name, last_name))
                 continue
 
             partials_dict = dict(player_id=player_id, club_id=club_id,

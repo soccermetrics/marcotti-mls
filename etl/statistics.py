@@ -24,13 +24,13 @@ class PlayerMinuteIngest(SeasonalDataIngest):
 
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
-                logger.error("Cannot insert Player Minutes record for {} {}: "
-                             "Club {} not in database".format(first_name, last_name, club_symbol))
+                logger.error(u"Cannot insert Player Minutes record for {} {}: "
+                             u"Club {} not in database".format(first_name, last_name, club_symbol))
                 continue
             player_id = self.get_player_from_name(first_name, last_name)
             if player_id is None:
-                logger.error("Cannot insert Player Minutes record for {} {}: "
-                             "Player not in database".format(first_name, last_name))
+                logger.error(u"Cannot insert Player Minutes record for {} {}: "
+                             u"Player not in database".format(first_name, last_name))
                 continue
 
             stat_dict = self.prepare_db_dict(
@@ -191,8 +191,8 @@ class LeaguePointIngest(SeasonalDataIngest):
                          if value is not None}
             club_id = self.get_id(Clubs, **club_dict)
             if club_id is None:
-                logger.error("Cannot insert LeaguePoint record: "
-                             "Database error involving {}".format(club_dict))
+                logger.error(u"Cannot insert LeaguePoint record: "
+                             u"Database error involving {}".format(club_dict))
                 continue
 
             club_season_dict = dict(club_id=club_id, competition_id=self.competition_id, season_id=self.season_id)
