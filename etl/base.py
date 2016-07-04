@@ -5,7 +5,7 @@ import logging
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from models import Seasons, Years
+from models import Seasons, Years, Competitions, Players
 
 
 logger = logging.getLogger(__name__)
@@ -121,6 +121,40 @@ class BaseCSV(BaseIngest):
 
     def parse_file(self, rows):
         raise NotImplementedError
+
+
+class SeasonalDataIngest(BaseCSV):
+    """
+    Ingestion methods for competition- and season-specific data.
+    """
+
+    def __init__(self, session, competition, season):
+        super(SeasonalDataIngest, self).__init__(session)
+        self.competition_id = self.get_id(Competitions, name=competition)
+        self.season_id = self.get_id(Seasons, name=season)
+
+    def get_player_from_name(self, first_name, last_name):
+        """
+        Retrieve player ID associated with player's full name.
+
+        To avoid ambiguity, some last names include the player's birthdate separated by ':'.
+        In this situation, the player is searched by full name and birthdate.
+
+        :param first_name: First name of player (or last name in case of Eastern word order)
+        :param last_name: Last name of player that makes up full name.  Can include birthdate separated by ':'.
+        :return: Unique ID of player.
+        """
+        if ':' in last_name:
+            last_name_text, birth_date = last_name.split(':')
+            full_name = " ".join([first_name, last_name_text]) if first_name else last_name_text
+            player_id = self.get_id(Players, full_name=full_name, birth_date=birth_date)
+        else:
+            full_name = " ".join([first_name, last_name]) if first_name else last_name
+            player_id = self.get_id(Players, full_name=full_name)
+        return player_id
+
+    def parse_file(self, rows):
+        return NotImplementedError
 
 
 def ingest_feeds(handle_iterator, prefix, pattern, feed_class):
