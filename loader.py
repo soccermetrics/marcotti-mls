@@ -30,7 +30,7 @@ if __name__ == "__main__":
                     data_file = os.path.join(*data_file)
                 logger.info("Ingesting %s into %s data model",
                             os.path.join(settings.CSV_DATA_DIR, data_file), entity)
-                if entity in ['Salaries', 'Partials', 'FieldStats', 'GkStats', 'LeaguePoints']:
+                if entity in ['Salaries', 'Partials', 'Minutes', 'LeaguePoints']:
                     params = (sess, settings.COMPETITION_NAME, settings.SEASON_NAME)
                 else:
                     params = (sess,)

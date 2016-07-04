@@ -49,10 +49,12 @@ class LocalConfig(Config):
     CSV_DATA = {
         'Clubs': None,
         'Competitions': None,
+        'CompetitionSeasons': None,
         'Players': None,
         'Acquisitions': None,
         'Salaries': None,
         'Partials': None,
+        'Minutes': None,
         'FieldStats': None,
         'GkStats': None,
         'LeaguePoints': None
