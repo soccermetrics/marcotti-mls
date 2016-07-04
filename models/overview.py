@@ -275,6 +275,22 @@ class Persons(BaseSchema):
                               ['first_name', 'middle_name', 'last_name', 'second_last_name']
                               if getattr(self, field) is not None])
 
+    @official_name.expression
+    def official_name(cls):
+        """
+        The person's legal name, following naming order conventions and with middle names included.
+
+        :return: Person's legal name.
+        """
+        return case(
+            [(cls.order == enums.NameOrderType.eastern, cls.last_name + ' ' + cls.first_name)],
+            else_=(
+                case([cls.first_name != None, cls.first_name + ' '], else_='') +
+                case([cls.middle_name != None, cls.middle_name + ' '], else_='') +
+                case([cls.last_name != None, cls.last_name + ' '], else_='') +
+                case([cls.second_last_name != None, cls.second_last_name], else_=''))
+        )
+
     @hybrid_method
     def exact_age(self, reference):
         """
