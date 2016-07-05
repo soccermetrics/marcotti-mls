@@ -12,7 +12,7 @@ from models import BaseSchema
 from etl import create_seasons, ingest_feeds, get_local_handles, CountryIngest
 
 
-__version__ = ('0', '7', '0')
+__version__ = ('0', '8', '0')
 
 LOG_FORMAT = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
 ch = logging.FileHandler(os.path.join(LocalConfig().LOG_DIR, 'marcotti.log'))
