@@ -181,8 +181,14 @@ class LeaguePointIngest(SeasonalDataIngest):
         inserts = 0
         insertion_list = []
         for keys in rows:
-            club_symbol = self.column("Club Symbol", **keys)
-            club_name = self.column_unicode("Club", **keys)
+            try:
+                club_symbol = self.column("Club Symbol", **keys)
+            except KeyError:
+                club_symbol = None
+            try:
+                club_name = self.column_unicode("Club", **keys)
+            except KeyError:
+                club_name = None
             matches_played = self.column_int("GP", **keys)
             points = self.column_int("Pts", **keys)
 
@@ -199,7 +205,7 @@ class LeaguePointIngest(SeasonalDataIngest):
             if not self.record_exists(LeaguePoints, **club_season_dict):
                 point_record_dict = dict(played=matches_played, points=points)
                 point_record_dict.update(club_season_dict)
-                insertion_list.append(point_record_dict)
+                insertion_list.append(LeaguePoints(**point_record_dict))
                 inserted, insertion_list = self.bulk_insert(insertion_list, 10)
                 inserts += inserted
         self.session.add_all(insertion_list)
