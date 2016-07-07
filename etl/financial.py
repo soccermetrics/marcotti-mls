@@ -41,7 +41,7 @@ class AcquisitionIngest(PersonIngest):
                              u"Database error involving Player record".format(player_dict))
                 continue
 
-            acquisition_dict = dict(player_id=player_id, year_id=year_id)
+            acquisition_dict = dict(player_id=player_id, year_id=year_id, path=acquisition_path)
             if not self.record_exists(AcquisitionPaths, **acquisition_dict):
                 acquisition_record = AcquisitionPaths(**acquisition_dict)
                 if acquisition_path in [AcquisitionType.college_draft, AcquisitionType.inaugural_draft,
