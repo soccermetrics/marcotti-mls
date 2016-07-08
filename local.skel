@@ -40,10 +40,6 @@ class LocalConfig(Config):
     # ETL variables
     #
 
-    # Competition and season names
-    COMPETITION_NAME = u''
-    SEASON_NAME = ''
-
     # Define CSV data files
     CSV_DATA_DIR = r''
     CSV_DATA = {

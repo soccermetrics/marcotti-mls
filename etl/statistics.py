@@ -17,11 +17,23 @@ class PlayerMinuteIngest(SeasonalDataIngest):
         insertion_list = []
         logger.info("Ingesting Player Minutes...")
         for keys in rows:
-            club_symbol = self.column("Team Symbol", **keys)
+            competition_name = self.column_unicode("Competition", **keys)
+            season_name = self.column("Season", **keys)
+            club_symbol = self.column("Club Symbol", **keys)
             last_name = self.column_unicode("Last Name", **keys)
             first_name = self.column_unicode("First Name", **keys)
             total_minutes = self.column_int("Mins", **keys)
 
+            competition_id = self.get_id(Competitions, name=competition_name)
+            if competition_id is None:
+                logger.error(u"Cannot insert Player Minutes record for {} {}: "
+                             u"Competition {} not in database".format(first_name, last_name, competition_name))
+                continue
+            season_id = self.get_id(Seasons, name=season_name)
+            if season_id is None:
+                logger.error(u"Cannot insert Player Minutes record for {} {}: "
+                             u"Season {} not in database".format(first_name, last_name, season_name))
+                continue
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
                 logger.error(u"Cannot insert Player Minutes record for {} {}: "
@@ -35,7 +47,7 @@ class PlayerMinuteIngest(SeasonalDataIngest):
 
             stat_dict = self.prepare_db_dict(
                 ['player_id', 'club_id', 'competition_id', 'season_id', 'minutes'],
-                [player_id, club_id, self.competition_id, self.season_id, total_minutes])
+                [player_id, club_id, competition_id, season_id, total_minutes])
             if not self.record_exists(FieldPlayerStats, **stat_dict):
                 insertion_list.append(FieldPlayerStats(**stat_dict))
                 inserted, insertion_list = self.bulk_insert(insertion_list, 50)
@@ -189,9 +201,21 @@ class LeaguePointIngest(SeasonalDataIngest):
                 club_name = self.column_unicode("Club", **keys)
             except KeyError:
                 club_name = None
+            competition_name = self.column_unicode("Competition", **keys)
+            season_name = self.column("Season", **keys)
             matches_played = self.column_int("GP", **keys)
             points = self.column_int("Pts", **keys)
 
+            competition_id = self.get_id(Competitions, name=competition_name)
+            if competition_id is None:
+                logger.error(u"Cannot insert LeaguePoint record: "
+                             u"Competition {} not in database".format(competition_name))
+                continue
+            season_id = self.get_id(Seasons, name=season_name)
+            if season_id is None:
+                logger.error(u"Cannot insert LeaguePoint record: "
+                             u"Season {} not in database".format(season_name))
+                continue
             club_dict = {field: value for (field, value)
                          in zip(['name', 'symbol'], [club_name, club_symbol])
                          if value is not None}
@@ -201,7 +225,7 @@ class LeaguePointIngest(SeasonalDataIngest):
                              u"Database error involving {}".format(club_dict))
                 continue
 
-            club_season_dict = dict(club_id=club_id, competition_id=self.competition_id, season_id=self.season_id)
+            club_season_dict = dict(club_id=club_id, competition_id=competition_id, season_id=season_id)
             if not self.record_exists(LeaguePoints, **club_season_dict):
                 point_record_dict = dict(played=matches_played, points=points)
                 point_record_dict.update(club_season_dict)

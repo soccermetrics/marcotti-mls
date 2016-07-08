@@ -1,7 +1,7 @@
 import logging
 
 from models import (Countries, Players, PlayerSalaries, PartialTenures, AcquisitionPaths,
-                    AcquisitionType, PlayerDrafts, Clubs, Years)
+                    AcquisitionType, PlayerDrafts, Competitions, Clubs, Years, Seasons)
 from etl import PersonIngest, SeasonalDataIngest
 
 
@@ -69,12 +69,24 @@ class PlayerSalaryIngest(SeasonalDataIngest):
         insertion_list = []
         logger.info("Ingesting Player Salaries...")
         for keys in rows:
-            club_symbol = self.column("Team Symbol", **keys)
+            competition_name = self.column_unicode("Competition", **keys)
+            season_name = self.column("Season", **keys)
+            club_symbol = self.column("Club Symbol", **keys)
             last_name = self.column_unicode("Last Name", **keys)
             first_name = self.column_unicode("First Name", **keys)
             base_salary = int(self.column_float("Base", **keys) * 100)
             guar_salary = int(self.column_float("Guaranteed", **keys) * 100)
 
+            competition_id = self.get_id(Competitions, name=competition_name)
+            if competition_id is None:
+                logger.error(u"Cannot insert Salary record for {} {}: "
+                             u"Competition {} not in database".format(first_name, last_name, competition_name))
+                continue
+            season_id = self.get_id(Seasons, name=season_name)
+            if season_id is None:
+                logger.error(u"Cannot insert Salary record for {} {}: "
+                             u"Season {} not in database".format(first_name, last_name, season_name))
+                continue
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
                 logger.error(u"Cannot insert Salary record for {} {}: "
@@ -87,7 +99,7 @@ class PlayerSalaryIngest(SeasonalDataIngest):
                 continue
 
             salary_dict = dict(player_id=player_id, club_id=club_id,
-                               competition_id=self.competition_id, season_id=self.season_id)
+                               competition_id=competition_id, season_id=season_id)
             if not self.record_exists(PlayerSalaries, **salary_dict):
                 insertion_list.append(PlayerSalaries(base_salary=base_salary,
                                                      avg_guaranteed=guar_salary,
@@ -108,12 +120,24 @@ class PartialTenureIngest(SeasonalDataIngest):
         insertion_list = []
         logger.info("Ingesting Partial Tenure records...")
         for keys in rows:
-            club_symbol = self.column("Team Symbol", **keys)
+            competition_name = self.column_unicode("Competition", **keys)
+            season_name = self.column("Season", **keys)
+            club_symbol = self.column("Club Symbol", **keys)
             last_name = self.column_unicode("Last Name", **keys)
             first_name = self.column_unicode("First Name", **keys)
             start_week = self.column_int("Start Term", **keys)
             end_week = self.column_int("End Term", **keys)
 
+            competition_id = self.get_id(Competitions, name=competition_name)
+            if competition_id is None:
+                logger.error(u"Cannot insert Partial Tenure record for {} {}: "
+                             u"Competition {} not in database".format(first_name, last_name, competition_name))
+                continue
+            season_id = self.get_id(Seasons, name=season_name)
+            if season_id is None:
+                logger.error(u"Cannot insert Partial Tenure record for {} {}: "
+                             u"Season {} not in database".format(first_name, last_name, season_name))
+                continue
             club_id = self.get_id(Clubs, symbol=club_symbol)
             if club_id is None:
                 logger.error(u"Cannot insert Partial Tenure record for {} {}: "
@@ -126,8 +150,8 @@ class PartialTenureIngest(SeasonalDataIngest):
                 continue
 
             partials_dict = dict(player_id=player_id, club_id=club_id,
-                                 competition_id=self.competition_id,
-                                 season_id=self.season_id)
+                                 competition_id=competition_id,
+                                 season_id=season_id)
             if not self.record_exists(PartialTenures, **partials_dict):
                 insertion_list.append(PartialTenures(start_week=start_week,
                                                      end_week=end_week,

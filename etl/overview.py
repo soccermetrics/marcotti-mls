@@ -89,7 +89,7 @@ class CompetitionSeasonIngest(BaseCSV):
         inserts = 0
         insertion_list = []
         for keys in rows:
-            competition_name = self.column("Competition", **keys)
+            competition_name = self.column_unicode("Competition", **keys)
             season_name = self.column("Season", **keys)
             start_date_iso = self.column("Start", **keys)
             end_date_iso = self.column("End", **keys)

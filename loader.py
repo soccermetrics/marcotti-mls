@@ -28,11 +28,6 @@ if __name__ == "__main__":
             else:
                 if type(data_file) is list:
                     data_file = os.path.join(*data_file)
-                logger.info("Ingesting %s into %s data model",
-                            os.path.join(settings.CSV_DATA_DIR, data_file), entity)
-                if entity in ['Salaries', 'Partials', 'Minutes', 'LeaguePoints']:
-                    params = (sess, settings.COMPETITION_NAME, settings.SEASON_NAME)
-                else:
-                    params = (sess,)
-                ingest_feeds(get_local_handles, settings.CSV_DATA_DIR, data_file, etl_class(*params))
+                logger.info("** Ingesting into %s data model **", entity)
+                ingest_feeds(get_local_handles, settings.CSV_DATA_DIR, data_file, etl_class(sess))
     logger.info("Data ingestion complete")

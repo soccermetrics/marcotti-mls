@@ -5,7 +5,7 @@ import logging
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from models import Seasons, Years, Competitions, Players
+from models import Seasons, Years, Players
 
 
 logger = logging.getLogger(__name__)
@@ -128,11 +128,6 @@ class SeasonalDataIngest(BaseCSV):
     Ingestion methods for competition- and season-specific data.
     """
 
-    def __init__(self, session, competition, season):
-        super(SeasonalDataIngest, self).__init__(session)
-        self.competition_id = self.get_id(Competitions, name=competition)
-        self.season_id = self.get_id(Seasons, name=season)
-
     def get_player_from_name(self, first_name, last_name):
         """
         Retrieve player ID associated with player's full name.
@@ -185,6 +180,7 @@ def get_local_handles(prefix, pattern):
     """
     glob_pattern = os.path.join(prefix, "{}".format(pattern))
     for filename in glob.glob(glob_pattern):
+        logger.info("Loading data file {}".format(filename))
         with open(filename) as fh:
             yield fh
 
