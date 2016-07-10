@@ -157,6 +157,15 @@ class CompetitionSeasons(BaseSchema):
     competition = relationship('Competitions')
     season = relationship('Seasons')
 
+    @hybrid_property
+    def weeks(self):
+        """
+        Number of calendar weeks in competition's season.
+
+        :return: Number of weeks between start and end dates of season
+        """
+        return ((self.end_date - self.start_date).days + 1) / 7
+
     def __repr__(self):
         return "<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
             self.competition.name, self.season.name, self.start_date.isoformat(),
