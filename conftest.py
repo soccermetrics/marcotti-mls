@@ -17,7 +17,7 @@ def config():
 
 @pytest.fixture(scope='session')
 def db_connection(request, config):
-    engine = create_engine(config.DATABASE_URI)
+    engine = create_engine(config.database_uri)
     connection = engine.connect()
     BaseSchema.metadata.create_all(connection)
 
