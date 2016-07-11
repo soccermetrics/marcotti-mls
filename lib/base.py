@@ -1,3 +1,5 @@
+from sqlalchemy.sql import func
+
 from models import *
 
 
@@ -102,3 +104,20 @@ class Analytics(object):
             available_payroll += tp
         league_util = numerator / denominator if denominator != 0.0 else 0.0
         return available_payroll, league_util
+
+    def calc_club_efficiency(self, comp_season, club):
+        avail_payroll, _, _, util_factor = self.calc_club_utilization(comp_season, club)
+        points = self.session.query(LeaguePoints.points).filter(
+            LeaguePoints.comp_season == comp_season, LeaguePoints.club_id == club.id).one()
+        points_per_game = float(points) / comp_season.matchdays
+        return (avail_payroll * util_factor) / points_per_game
+
+    def calc_league_efficiency(self, comp_season):
+        avail_payroll, util_factor = self.calc_league_utilization(comp_season)
+        points = self.session.query(func.sum(LeaguePoints.points)).filter(
+            LeaguePoints.comp_season == comp_season).scalar()
+        matches_played = self.session.query(func.sum(LeaguePoints.played)).filter(
+            LeaguePoints.comp_season == comp_season).scalar()
+        number_clubs = self.session.query(LeaguePoints).filter_by(comp_season=comp_season).count()
+        points_per_game = 2.0 * float(points) / matches_played
+        return (avail_payroll / number_clubs * util_factor) / points_per_game
