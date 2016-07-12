@@ -21,6 +21,15 @@ class Analytics(object):
         """
         roster = self.session.query(PlayerSalaries).filter_by(comp_season=comp_season, club=club)
         return roster
+
+    def calc_number_teams_season(self, comp_season):
+        """
+        Calculate number of teams participating in specific season of competition.
+
+        :param comp_season: CompetitionSeason object
+        :return: int
+        """
+        return self.session.query(LeaguePoints).filter_by(comp_season=comp_season).count()
     
     def calc_season_payrolls(self, comp_season):
         """
@@ -106,6 +115,15 @@ class Analytics(object):
         return available_payroll, league_util
 
     def calc_club_efficiency(self, comp_season, club):
+        """
+        Calculate front-office efficiency rating of a club during a league competition season.
+
+        Returns payroll cost per point per game, in cents.
+
+        :param comp_season: CompetitionSeasons object
+        :param club: Clubs object
+        :return: float
+        """
         avail_payroll, _, _, util_factor = self.calc_club_utilization(comp_season, club)
         points = self.session.query(LeaguePoints.points).filter(
             LeaguePoints.comp_season == comp_season, LeaguePoints.club_id == club.id).one()
@@ -113,11 +131,52 @@ class Analytics(object):
         return (avail_payroll * util_factor) / points_per_game
 
     def calc_league_efficiency(self, comp_season):
+        """
+        Calculate average front-office efficiency of league competition season.
+
+        Returns payroll cost per point per game, in cents.
+
+        :param comp_season: CompetitionSeasons object
+        :return: float
+        """
         avail_payroll, util_factor = self.calc_league_utilization(comp_season)
         points = self.session.query(func.sum(LeaguePoints.points)).filter(
             LeaguePoints.comp_season == comp_season).scalar()
         matches_played = self.session.query(func.sum(LeaguePoints.played)).filter(
             LeaguePoints.comp_season == comp_season).scalar()
-        number_clubs = self.session.query(LeaguePoints).filter_by(comp_season=comp_season).count()
-        points_per_game = 2.0 * float(points) / matches_played
+        number_clubs = self.calc_number_teams_season(comp_season)
+        points_per_game = float(points) / matches_played
         return (avail_payroll / number_clubs * util_factor) / points_per_game
+
+    def calc_inflation_factor(self, comp_season_current, comp_season_base):
+        """
+        Calculate inflation factor, which is the baseline average payroll per club divided by the average
+        payroll per club in the current season.
+
+        If the baseline season is the current one, return 1.0.
+
+        :param comp_season_current: CompetitionSeasons object for current competition/season
+        :param comp_season_base: CompetitionSeasons object for baseline competition/season
+        :return: float
+        """
+        if comp_season_current == comp_season_base:
+            return 1.0
+        else:
+            avail_payroll_current, _ = self.calc_league_utilization(comp_season_current)
+            avg_avail_payroll_current = float(avail_payroll_current)/self.calc_number_teams_season(comp_season_current)
+            avail_payroll_base, _ = self.calc_league_utilization(comp_season_base)
+            avg_avail_payroll_base = float(avail_payroll_base)/self.calc_number_teams_season(comp_season_base)
+            return avg_avail_payroll_base / avg_avail_payroll_current
+
+    def calc_win_cost(self, club, comp_season, comp_season_base):
+        """
+        Calculate the standard win cost of a club in a competition season, relative to a baseline season.
+
+        :param club: Clubs object
+        :param comp_season: CompetitionSeasons object for current competition/season
+        :param comp_season_base: CompetitionSeasons object for baseline competition/season
+        :return: float
+        """
+        return (self.calc_club_efficiency(comp_season, club) *
+                self.calc_inflation_factor(comp_season, comp_season_base) /
+                self.calc_league_efficiency(comp_season_base) * 100.0)
