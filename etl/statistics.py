@@ -1,6 +1,6 @@
 import logging
 
-from etl.base import BaseCSV, SeasonalDataIngest
+from etl.base import SeasonalDataIngest
 from models import *
 
 
@@ -59,7 +59,7 @@ class PlayerMinuteIngest(SeasonalDataIngest):
         logger.info("Player Minutes Ingestion complete.")
 
 
-class MatchStatIngest(BaseCSV):
+class MatchStatIngest(SeasonalDataIngest):
     """
     Ingestion methods for data files containing season statistics.
     
@@ -77,8 +77,9 @@ class MatchStatIngest(BaseCSV):
         return not any([arg for arg in args])
 
     def get_common_stats(self, **keys):
-        full_name = self.column_unicode("Full Name", **keys)
-        club_name = self.column_unicode("Team", **keys)
+        last_name = self.column_unicode("Last Name", **keys)
+        first_name = self.column_unicode("First Name", **keys)
+        club_name = self.column_unicode("Club", **keys)
         competition_name = self.column_unicode("Competition", **keys)
         start_year = self.column_int("Year1", **keys)
         end_year = self.column_int("Year2", **keys)
@@ -87,13 +88,8 @@ class MatchStatIngest(BaseCSV):
         total_minutes = self.column_int("Min", **keys)
         yellow_cards = self.column_int("Yc", **keys)
         red_cards = self.column_int("Rc", **keys)
-        
-        if ':' in full_name:
-            full_name, birth_date = full_name.split(':')
-            player_id = self.get_id(Players, full_name=full_name, birth_date=birth_date)
-        else:
-            player_id = self.get_id(Players, full_name=full_name)
-            
+
+        player_id = self.get_player_from_name(first_name, last_name)
         club_id = self.get_id(Clubs, name=club_name)
         competition_id = self.get_id(Competitions, name=competition_name)
         season_name = "{}" if start_year == end_year else "{}-{}".format(start_year, end_year)
