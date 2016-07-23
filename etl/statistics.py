@@ -140,7 +140,7 @@ class FieldStatIngest(MatchStatIngest):
             if field_stat_dict is not None:
                 if not self.record_exists(FieldPlayerStats, **field_stat_dict):
                     insertion_list.append(FieldPlayerStats(**field_stat_dict))
-                    inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, 500)
                     inserts += inserted
         self.session.add_all(insertion_list)
         self.session.commit()
