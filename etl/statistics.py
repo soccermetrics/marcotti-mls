@@ -92,7 +92,7 @@ class MatchStatIngest(SeasonalDataIngest):
         player_id = self.get_player_from_name(first_name, last_name)
         club_id = self.get_id(Clubs, name=club_name)
         competition_id = self.get_id(Competitions, name=competition_name)
-        season_name = "{}" if start_year == end_year else "{}-{}".format(start_year, end_year)
+        season_name = "{}".format(start_year) if start_year == end_year else "{}-{}".format(start_year, end_year)
         season_id = self.get_id(Seasons, name=season_name)
         
         stat_dict = self.prepare_db_dict(
