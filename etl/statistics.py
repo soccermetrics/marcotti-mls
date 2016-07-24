@@ -70,11 +70,28 @@ class MatchStatIngest(SeasonalDataIngest):
     def is_empty_record(*args):
         """Check for sparseness of statistical record.
 
-        If all quantities of a statistical record are zero, return True.
+        If all quantities of a statistical record are empty, return True.
 
-        If at least one quantity of statistical record is nonzero, return False.
+        If at least one quantity of statistical record is not empty, return False.
+
+        :param args: list of elements
+        :return: boolean that expresses (non-)sparseness of list
         """
-        return not any([arg for arg in args])
+        return not any(arg for arg in args)
+
+    @staticmethod
+    def empty_ids(*args):
+        """
+        Check for undefined database IDs in a list.
+
+        If any of the IDs are undefined (None), return True.
+
+        If all of the IDs are defined (not None), return False.
+
+        :param args: list of elements
+        :return: boolean that expresses presence of undefined elements
+        """
+        return any(arg is None for arg in args)
 
     def get_common_stats(self, **keys):
         last_name = self.column_unicode("Last Name", **keys)
@@ -94,6 +111,9 @@ class MatchStatIngest(SeasonalDataIngest):
         competition_id = self.get_id(Competitions, name=competition_name)
         season_name = "{}".format(start_year) if start_year == end_year else "{}-{}".format(start_year, end_year)
         season_id = self.get_id(Seasons, name=season_name)
+
+        if self.empty_ids(player_id, club_id, competition_id, season_id):
+            raise ValueError("At least one of Player/Club/Competition/Season IDs is empty. Skipping insert")
         
         stat_dict = self.prepare_db_dict(
             ['player_id', 'club_id', 'competition_id', 'season_id', 'appearances', 
@@ -112,7 +132,11 @@ class FieldStatIngest(MatchStatIngest):
         inserts = 0
         insertion_list = []
         for keys in rows:
-            common_stat_dict = self.get_common_stats(**keys)
+            try:
+                common_stat_dict = self.get_common_stats(**keys)
+            except ValueError as err:
+                logger.error(err.message)
+                continue
 
             total_goals = self.column_int("Gl", **keys)
             headed_goals = self.column_int("Hd", **keys)
@@ -155,7 +179,11 @@ class GoalkeeperStatIngest(MatchStatIngest):
         inserts = 0
         insertion_list = []
         for keys in rows:
-            common_stat_dict = self.get_common_stats(**keys)
+            try:
+                common_stat_dict = self.get_common_stats(**keys)
+            except ValueError as err:
+                logger.error(err.message)
+                continue
 
             wins = self.column_int("Wn", **keys)
             draws = self.column_int("Dr", **keys)
