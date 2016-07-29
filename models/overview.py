@@ -263,12 +263,12 @@ class Persons(BaseSchema):
                 [
                     (cls.order == enums.NameOrderType.middle,
                         case([(cls.known_first_name != None, cls.known_first_name)], else_=cls.first_name) +
-                        ' ' + cls.middle_name + ' ' + cls.last_name),
-                    (cls.order == enums.NameOrderType.eastern, cls.last_name + ' ' + cls.first_name)
+                        u' ' + cls.middle_name + u' ' + cls.last_name),
+                    (cls.order == enums.NameOrderType.eastern, cls.last_name + u' ' + cls.first_name)
                 ],
                 else_=case(
                     [(cls.known_first_name != None, cls.known_first_name)],
-                    else_=cls.first_name) + ' ' + cls.last_name))
+                    else_=cls.first_name) + u' ' + cls.last_name))
 
     @hybrid_property
     def official_name(self):
@@ -357,9 +357,9 @@ class Players(Persons):
     def __repr__(self):
         return u"<Player(name={}, DOB={}, country={}, position={})>".format(
             self.full_name, self.birth_date.isoformat(), self.country.name,
-            '/'.join([self.primary_position.value, self.secondary_position.value])).encode('utf-8')
+            '/'.join([pos.value for pos in [self.primary_position, self.secondary_position] if pos])).encode('utf-8')
 
     def __unicode__(self):
         return u"<Player(name={}, DOB={}, country={}, position={})>".format(
             self.full_name, self.birth_date.isoformat(), self.country.name,
-            '/'.join([self.primary_position.value, self.secondary_position.value]))
+            '/'.join([pos.value for pos in [self.primary_position, self.secondary_position] if pos]))

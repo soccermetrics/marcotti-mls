@@ -39,7 +39,7 @@ class PlayerDrafts(AcquisitionPaths):
     selection = Column(Integer, CheckConstraint('selection > 0'))
 
     def __repr__(self):
-        return "<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
+        return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
             self.player.full_name, self.year.name, self.round, self.selection).decode('utf-8')
 
     def __unicode__(self):
@@ -75,10 +75,10 @@ class PlayerSalaries(BaseSchema):
     comp_season = relationship('CompetitionSeasons', backref=backref('payroll'))
 
     def __repr__(self):
-        return "<PlayerSalary(name={0}, club={1}, competition={2}, season={3}, base={4:.2f}, " \
-               "guaranteed={5:.2f})>".format(self.player.full_name, self.club.name,
-                                             self.comp_season.competition.name, self.comp_season.season.name,
-                                             self.base_salary/100.00, self.avg_guaranteed/100.00).encode('utf-8')
+        return u"<PlayerSalary(name={0}, club={1}, competition={2}, season={3}, base={4:.2f}, " \
+               u"guaranteed={5:.2f})>".format(self.player.full_name, self.club.name,
+                                              self.comp_season.competition.name, self.comp_season.season.name,
+                                              self.base_salary/100.00, self.avg_guaranteed/100.00).encode('utf-8')
 
     def __unicode__(self):
         return u"<PlayerSalary(name={0}, club={1}, competition={2}, season={3}, base={4:.2f}, " \
@@ -114,9 +114,11 @@ class PartialTenures(BaseSchema):
     comp_season = relationship('CompetitionSeasons', backref=backref('partials'))
 
     def __repr__(self):
-        return "<PartialTenure(name={0}, club={1}, competition={2}, season={3}, start_week={4}, end_week={5})>".format(
-            self.player.full_name, self.club.name, self.comp_season.competition.name, self.comp_season.season.name,
-            self.start_week, self.end_week).encode('utf-8')
+        return u"<PartialTenure(name={0}, club={1}, competition={2}, season={3}, " \
+               u"start_week={4}, end_week={5})>".format(self.player.full_name, self.club.name,
+                                                        self.comp_season.competition.name,
+                                                        self.comp_season.season.name,
+                                                        self.start_week, self.end_week).encode('utf-8')
 
     def __unicode__(self):
         return u"<PartialTenure(name={0}, club={1}, competition={2}, season={3}, " \
