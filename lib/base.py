@@ -27,10 +27,55 @@ class Analytics(object):
         Calculate number of teams participating in specific season of competition.
 
         :param comp_season: CompetitionSeason object
-        :return: int
+        :return: int (number of teams)
         """
         return self.session.query(LeaguePoints).filter_by(comp_season=comp_season).count()
-    
+
+    def mls_acquisition_census(self, year):
+        """
+        Return census of MLS acquisition paths of new players in specific year.
+
+        :param year: Year object
+        :return: list of tuples (acquisition path, number of players)
+        """
+        return self.session.query(AcquisitionPaths.path, func.count(AcquisitionPaths.player_id)).filter(
+            AcquisitionPaths.year == year).group_by(AcquisitionPaths.path)
+
+    def mls_drafts_available(self, year):
+        """
+        Return the MLS drafts available for new players in a season year.
+
+        :param year: Year object
+        :return:
+        """
+        draft_types = [AcquisitionType.inaugural_draft, AcquisitionType.college_draft,
+                       AcquisitionType.super_draft, AcquisitionType.supplemental_draft]
+        paths_year = zip(*self.session.query(AcquisitionPaths.path.distinct()).filter(
+            AcquisitionPaths.year == year).all())[0]
+        return set(draft_types) & set(paths_year)
+
+    def get_draft_format(self, dtype, year):
+        """
+        Return number of rounds in draft, given draft type and year.
+
+        :param dtype: Draft type (AcquisitionType)
+        :param year: Year object
+        :return:
+        """
+        return self.session.query(func.max(PlayerDrafts.round), func.max(PlayerDrafts.selection)).filter(
+            PlayerDrafts.path == dtype, PlayerDrafts.year == year).one()
+
+    def get_draft_class(self, year, rnd):
+        """
+        Return player IDs of draft class, given year and draft round.
+
+        :param year:
+        :param rnd:
+        :return:
+        """
+        return self.session.query(PlayerDrafts.player_id).filter(
+            PlayerDrafts.year == year, PlayerDrafts.round == rnd).all()
+
     def calc_season_payrolls(self, comp_season):
         """
         Calculate base salary totals for all clubs participating in competition and season.
