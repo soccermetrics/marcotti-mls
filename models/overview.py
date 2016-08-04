@@ -23,7 +23,8 @@ class Countries(BaseSchema):
     confederation = Column(enums.ConfederationType.db_type())
 
     def __repr__(self):
-        return "<Country(id={0}, name={1}, confed={2})>".format(self.id, self.name, self.confederation.value)
+        return u"<Country(id={0}, name={1}, confed={2})>".format(self.id, self.name,
+                                                                 self.confederation.value).encode('utf-8')
 
 
 class Years(BaseSchema):
@@ -34,6 +35,9 @@ class Years(BaseSchema):
 
     id = Column(Integer, Sequence('year_id_seq', start=100), primary_key=True)
     yr = Column(Integer, unique=True)
+
+    def __repr__(self):
+        return "<Year(yr={0})>".format(self.yr)
 
 
 class Seasons(BaseSchema):
@@ -124,8 +128,8 @@ class DomesticCompetitions(Competitions):
     country = relationship('Countries', backref=backref('competitions'))
 
     def __repr__(self):
-        return "<DomesticCompetition(name={0}, country={1}, level={2})>".format(
-            self.name, self.country.name, self.level)
+        return u"<DomesticCompetition(name={0}, country={1}, level={2})>".format(
+            self.name, self.country.name, self.level).encode('utf-8')
 
 
 class InternationalCompetitions(Competitions):
@@ -137,8 +141,8 @@ class InternationalCompetitions(Competitions):
     confederation = Column(enums.ConfederationType.db_type())
 
     def __repr__(self):
-        return "<InternationalCompetition(name={0}, confederation={1})>".format(
-            self.name, self.confederation.value)
+        return u"<InternationalCompetition(name={0}, confederation={1})>".format(
+            self.name, self.confederation.value).encode('utf-8')
 
 
 class CompetitionSeasons(BaseSchema):
@@ -167,9 +171,9 @@ class CompetitionSeasons(BaseSchema):
         return ((self.end_date - self.start_date).days + 1) / 7
 
     def __repr__(self):
-        return "<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
+        return u"<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
             self.competition.name, self.season.name, self.start_date.isoformat(),
-            self.end_date.isoformat(), self.matchdays)
+            self.end_date.isoformat(), self.matchdays).encode('utf-8')
 
     def __unicode__(self):
         return u"<CompetitionSeason(name={0}, season={1}, start={2}, end={3}, matches={4})>".format(
@@ -292,12 +296,12 @@ class Persons(BaseSchema):
         :return: Person's legal name.
         """
         return case(
-            [(cls.order == enums.NameOrderType.eastern, cls.last_name + ' ' + cls.first_name)],
+            [(cls.order == enums.NameOrderType.eastern, cls.last_name + u' ' + cls.first_name)],
             else_=(
-                case([cls.first_name != None, cls.first_name + ' '], else_='') +
-                case([cls.middle_name != None, cls.middle_name + ' '], else_='') +
-                case([cls.last_name != None, cls.last_name + ' '], else_='') +
-                case([cls.second_last_name != None, cls.second_last_name], else_=''))
+                case([cls.first_name != None, cls.first_name + u' '], else_=u'') +
+                case([cls.middle_name != None, cls.middle_name + u' '], else_=u'') +
+                case([cls.last_name != None, cls.last_name + u' '], else_=u'') +
+                case([cls.second_last_name != None, cls.second_last_name], else_=u''))
         )
 
     @hybrid_method
