@@ -40,11 +40,11 @@ class PlayerDrafts(AcquisitionPaths):
 
     def __repr__(self):
         return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
-            self.player.full_name, self.year.name, self.round, self.selection).decode('utf-8')
+            self.player.full_name, self.year.yr, self.round, self.selection).encode('utf-8')
 
     def __unicode__(self):
         return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
-            self.player.full_name, self.year.name, self.round, self.selection)
+            self.player.full_name, self.year.yr, self.round, self.selection)
 
 
 class PlayerSalaries(BaseSchema):
