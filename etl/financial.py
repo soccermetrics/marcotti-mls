@@ -50,6 +50,7 @@ class AcquisitionIngest(PersonIngest):
                 insertion_list.append(acquisition_record)
                 inserted, insertion_list = self.bulk_insert(insertion_list, 200)
                 inserts += inserted
+                logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -106,6 +107,7 @@ class PlayerSalaryIngest(SeasonalDataIngest):
                                                      **salary_dict))
                 inserted, insertion_list = self.bulk_insert(insertion_list, 100)
                 inserts += inserted
+                logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)

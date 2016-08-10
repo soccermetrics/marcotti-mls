@@ -145,6 +145,7 @@ class ClubIngest(BaseCSV):
                     insertion_list.append(Clubs(**club_dict))
                     inserted, insertion_list = self.bulk_insert(insertion_list, 50)
                     inserts += inserted
+                    logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -212,5 +213,7 @@ class PlayerIngest(PersonIngest):
                 self.session.add(player_record)
                 self.session.commit()
                 inserts += 1
+                if inserts % 200 == 0:
+                    logger.info("{} records inserted".format(inserts))
         logger.info("Total {} Player records inserted and committed to database".format(inserts))
         logger.info("Player Ingestion complete.")
