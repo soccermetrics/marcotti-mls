@@ -166,6 +166,7 @@ class FieldStatIngest(MatchStatIngest):
                     insertion_list.append(FieldPlayerStats(**field_stat_dict))
                     inserted, insertion_list = self.bulk_insert(insertion_list, 500)
                     inserts += inserted
+                    logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -194,7 +195,7 @@ class GoalkeeperStatIngest(MatchStatIngest):
 
             gk_stat_dict = self.prepare_db_dict(
                 ['wins', 'draws', 'losses', 'goals_allowed', 'shots_allowed', 'clean_sheets'],
-                [wins, draws, losses, goals_allowed, clean_sheets, shots_allowed]
+                [wins, draws, losses, goals_allowed, shots_allowed, clean_sheets]
             )
             gk_stat_dict.update(common_stat_dict)
 
