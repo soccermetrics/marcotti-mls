@@ -61,7 +61,7 @@ class Seasons(BaseSchema):
         seasons over two years will be of form YYYY-YYYY.
         """
         if self.start_year.yr == self.end_year.yr:
-            return self.start_year.yr
+            return "{0}".format(self.start_year.yr)
         else:
             return "{0}-{1}".format(self.start_year.yr, self.end_year.yr)
 
