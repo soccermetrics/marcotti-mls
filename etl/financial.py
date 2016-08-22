@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 class AcquisitionIngest(PersonIngest):
 
+    BATCH_SIZE = 200
+
     def parse_file(self, rows):
         inserts = 0
         insertion_list = []
@@ -48,9 +50,10 @@ class AcquisitionIngest(PersonIngest):
                                         AcquisitionType.super_draft, AcquisitionType.supplemental_draft]:
                     acquisition_record = self.parse_draft_data(acquisition_dict, keys)
                 insertion_list.append(acquisition_record)
-                inserted, insertion_list = self.bulk_insert(insertion_list, 200)
+                inserted, insertion_list = self.bulk_insert(insertion_list, AcquisitionIngest.BATCH_SIZE)
                 inserts += inserted
-                logger.info("{} records inserted".format(inserts))
+                if inserted and not inserts % AcquisitionIngest.BATCH_SIZE:
+                    logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -66,6 +69,8 @@ class AcquisitionIngest(PersonIngest):
 
 
 class PlayerSalaryIngest(SeasonalDataIngest):
+
+    BATCH_SIZE = 100
 
     def parse_file(self, rows):
         inserts = 0
@@ -107,9 +112,10 @@ class PlayerSalaryIngest(SeasonalDataIngest):
                 insertion_list.append(PlayerSalaries(base_salary=base_salary,
                                                      avg_guaranteed=guar_salary,
                                                      **salary_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 100)
+                inserted, insertion_list = self.bulk_insert(insertion_list, PlayerSalaryIngest.BATCH_SIZE)
                 inserts += inserted
-                logger.info("{} records inserted".format(inserts))
+                if inserted and not inserts % PlayerSalaryIngest.BATCH_SIZE:
+                    logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -118,6 +124,8 @@ class PlayerSalaryIngest(SeasonalDataIngest):
 
 
 class PartialTenureIngest(SeasonalDataIngest):
+
+    BATCH_SIZE = 10
 
     def parse_file(self, rows):
         inserts = 0
@@ -160,7 +168,7 @@ class PartialTenureIngest(SeasonalDataIngest):
                 insertion_list.append(PartialTenures(start_week=start_week,
                                                      end_week=end_week,
                                                      **partials_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 10)
+                inserted, insertion_list = self.bulk_insert(insertion_list, PartialTenureIngest.BATCH_SIZE)
                 inserts += inserted
         self.session.add_all(insertion_list)
         self.session.commit()

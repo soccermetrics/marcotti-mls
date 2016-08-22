@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 class CountryIngest(BaseCSV):
 
+    BATCH_SIZE = 50
+
     def parse_file(self, rows):
         insertion_list = []
         inserts = 0
@@ -23,7 +25,7 @@ class CountryIngest(BaseCSV):
             if not self.record_exists(Countries, name=country_name):
                 country_dict = dict(name=country_name, confederation=ConfederationType.from_string(confederation))
                 insertion_list.append(Countries(**country_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                inserted, insertion_list = self.bulk_insert(insertion_list, CountryIngest.BATCH_SIZE)
                 inserts += inserted
         self.session.add_all(insertion_list)
         inserts += len(insertion_list)
@@ -32,6 +34,8 @@ class CountryIngest(BaseCSV):
 
 
 class CompetitionIngest(BaseCSV):
+
+    BATCH_SIZE = 20
 
     def parse_file(self, rows):
         inserts = 0
@@ -74,7 +78,7 @@ class CompetitionIngest(BaseCSV):
                 if comp_record is not None:
                     insertion_list.append(comp_record)
                     logger.debug(u"Adding Competition record: {}".format(comp_dict))
-                    inserted, insertion_list = self.bulk_insert(insertion_list, 20)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, CompetitionIngest.BATCH_SIZE)
                     inserts += inserted
         self.session.add_all(insertion_list)
         self.session.commit()
@@ -84,6 +88,8 @@ class CompetitionIngest(BaseCSV):
 
 
 class CompetitionSeasonIngest(BaseCSV):
+
+    BATCH_SIZE = 10
 
     def parse_file(self, rows):
         inserts = 0
@@ -112,8 +118,10 @@ class CompetitionSeasonIngest(BaseCSV):
                                    end_date=end_date, matchdays=matchdays)
             if not self.record_exists(CompetitionSeasons, **compseason_dict):
                 insertion_list.append(CompetitionSeasons(**compseason_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 5)
+                inserted, insertion_list = self.bulk_insert(insertion_list, CompetitionSeasonIngest.BATCH_SIZE)
                 inserts += inserted
+                if inserted and not inserts % CompetitionSeasonIngest.BATCH_SIZE:
+                    logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -122,6 +130,8 @@ class CompetitionSeasonIngest(BaseCSV):
 
 
 class ClubIngest(BaseCSV):
+
+    BATCH_SIZE = 50
 
     def parse_file(self, rows):
         inserts = 0
@@ -143,9 +153,10 @@ class ClubIngest(BaseCSV):
                                  u"Country {} not in database".format(club_dict, country_name))
                 elif not self.record_exists(Clubs, **club_dict):
                     insertion_list.append(Clubs(**club_dict))
-                    inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, ClubIngest.BATCH_SIZE)
                     inserts += inserted
-                    logger.info("{} records inserted".format(inserts))
+                    if inserted and not inserts % ClubIngest.BATCH_SIZE:
+                        logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -181,6 +192,8 @@ class PersonIngest(BaseCSV):
 
 class PlayerIngest(PersonIngest):
 
+    BATCH_SIZE = 200
+
     def parse_file(self, rows):
         inserts = 0
         logger.info("Ingesting Players...")
@@ -213,7 +226,7 @@ class PlayerIngest(PersonIngest):
                 self.session.add(player_record)
                 self.session.commit()
                 inserts += 1
-                if inserts % 200 == 0:
+                if inserts % PlayerIngest.BATCH_SIZE == 0:
                     logger.info("{} records inserted".format(inserts))
         logger.info("Total {} Player records inserted and committed to database".format(inserts))
         logger.info("Player Ingestion complete.")

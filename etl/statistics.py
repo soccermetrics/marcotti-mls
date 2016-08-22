@@ -11,6 +11,8 @@ class PlayerMinuteIngest(SeasonalDataIngest):
     """
     Ingestion methods for data files containing player minutes.
     """
+
+    BATCH_SIZE = 50
     
     def parse_file(self, rows):
         inserts = 0
@@ -50,7 +52,7 @@ class PlayerMinuteIngest(SeasonalDataIngest):
                 [player_id, club_id, competition_id, season_id, total_minutes])
             if not self.record_exists(FieldPlayerStats, **stat_dict):
                 insertion_list.append(FieldPlayerStats(**stat_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                inserted, insertion_list = self.bulk_insert(insertion_list, PlayerMinuteIngest.BATCH_SIZE)
                 inserts += inserted
         self.session.add_all(insertion_list)
         self.session.commit()
@@ -127,6 +129,8 @@ class MatchStatIngest(SeasonalDataIngest):
 
 
 class FieldStatIngest(MatchStatIngest):
+
+    BATCH_SIZE = 500
     
     def parse_file(self, rows):
         inserts = 0
@@ -164,9 +168,10 @@ class FieldStatIngest(MatchStatIngest):
             if field_stat_dict is not None:
                 if not self.record_exists(FieldPlayerStats, **field_stat_dict):
                     insertion_list.append(FieldPlayerStats(**field_stat_dict))
-                    inserted, insertion_list = self.bulk_insert(insertion_list, 500)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, FieldStatIngest.BATCH_SIZE)
                     inserts += inserted
-                    logger.info("{} records inserted".format(inserts))
+                    if inserted and not inserts % FieldStatIngest.BATCH_SIZE:
+                        logger.info("{} records inserted".format(inserts))
         self.session.add_all(insertion_list)
         self.session.commit()
         inserts += len(insertion_list)
@@ -175,6 +180,8 @@ class FieldStatIngest(MatchStatIngest):
 
 
 class GoalkeeperStatIngest(MatchStatIngest):
+
+    BATCH_SIZE = 50
 
     def parse_file(self, rows):
         inserts = 0
@@ -203,7 +210,7 @@ class GoalkeeperStatIngest(MatchStatIngest):
                 if not self.record_exists(GoalkeeperStats, **gk_stat_dict):
                     stat_record = GoalkeeperStats(**gk_stat_dict)
                     insertion_list.append(stat_record)
-                    inserted, insertion_list = self.bulk_insert(insertion_list, 50)
+                    inserted, insertion_list = self.bulk_insert(insertion_list, GoalkeeperStatIngest.BATCH_SIZE)
                     inserts += inserted 
         self.session.add_all(insertion_list)
         self.session.commit()
@@ -213,6 +220,8 @@ class GoalkeeperStatIngest(MatchStatIngest):
 
 
 class LeaguePointIngest(SeasonalDataIngest):
+
+    BATCH_SIZE = 10
 
     def parse_file(self, rows):
         inserts = 0
@@ -255,7 +264,7 @@ class LeaguePointIngest(SeasonalDataIngest):
                 point_record_dict = dict(played=matches_played, points=points)
                 point_record_dict.update(club_season_dict)
                 insertion_list.append(LeaguePoints(**point_record_dict))
-                inserted, insertion_list = self.bulk_insert(insertion_list, 10)
+                inserted, insertion_list = self.bulk_insert(insertion_list, LeaguePointIngest.BATCH_SIZE)
                 inserts += inserted
         self.session.add_all(insertion_list)
         self.session.commit()
