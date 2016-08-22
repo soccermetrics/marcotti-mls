@@ -60,7 +60,9 @@ class AcquisitionIngest(PersonIngest):
     def parse_draft_data(self, acq_tuple, keys):
         draft_round = self.column_int("Round", **keys)
         draft_selection = self.column_int("Pick", **keys)
-        return PlayerDrafts(round=draft_round, selection=draft_selection, **acq_tuple)
+        is_generation_adidas = self.column_bool("Gen Adidas", **keys)
+        return PlayerDrafts(round=draft_round, selection=draft_selection,
+                            gen_adidas=is_generation_adidas, **acq_tuple)
 
 
 class PlayerSalaryIngest(SeasonalDataIngest):

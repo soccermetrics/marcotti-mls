@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, ForeignKeyConstraint, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import CheckConstraint
 
@@ -37,14 +37,15 @@ class PlayerDrafts(AcquisitionPaths):
 
     round = Column(Integer, CheckConstraint('round > 0'))
     selection = Column(Integer, CheckConstraint('selection > 0'))
+    gen_adidas = Column(Boolean, default=False)
 
     def __repr__(self):
-        return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
-            self.player.full_name, self.year.yr, self.round, self.selection).encode('utf-8')
+        return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}, generation_adidas={4})>".format(
+            self.player.full_name, self.year.yr, self.round, self.selection, self.gen_adidas).encode('utf-8')
 
     def __unicode__(self):
-        return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}>".format(
-            self.player.full_name, self.year.yr, self.round, self.selection)
+        return u"<PlayerDraft(name={0}, year={1}, round={2}, selection={3}, generation_adidas={4})>".format(
+            self.player.full_name, self.year.yr, self.round, self.selection, self.gen_adidas)
 
 
 class PlayerSalaries(BaseSchema):
