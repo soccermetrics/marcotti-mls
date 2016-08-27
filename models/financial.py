@@ -19,7 +19,9 @@ class AcquisitionPaths(BaseSchema):
 
     path = Column(enums.AcquisitionType.db_type())
     discriminator = Column('type', String(20))
+    club_id = Column(Integer, ForeignKey('clubs.id'))
 
+    club = relationship('Clubs', backref=backref('acquisitions'))
     player = relationship('Players', backref=backref('entry'))
     year = relationship('Years', backref=backref('acquisitions'))
 

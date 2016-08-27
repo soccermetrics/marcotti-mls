@@ -49,7 +49,8 @@ class AcquisitionIngest(PersonIngest):
                 if acquisition_path in [AcquisitionType.college_draft, AcquisitionType.inaugural_draft,
                                         AcquisitionType.super_draft, AcquisitionType.supplemental_draft]:
                     acquisition_record = self.parse_draft_data(acquisition_dict, keys)
-                insertion_list.append(acquisition_record)
+                if acquisition_record is not None:
+                    insertion_list.append(acquisition_record)
                 inserted, insertion_list = self.bulk_insert(insertion_list, AcquisitionIngest.BATCH_SIZE)
                 inserts += inserted
                 if inserted and not inserts % AcquisitionIngest.BATCH_SIZE:
@@ -64,8 +65,15 @@ class AcquisitionIngest(PersonIngest):
         draft_round = self.column_int("Round", **keys)
         draft_selection = self.column_int("Pick", **keys)
         is_generation_adidas = self.column_bool("Gen Adidas", **keys)
+        drafting_club = self.column_unicode("Acquiring Club", **keys)
+
+        club_id = self.get_id(Clubs, name=drafting_club)
+        if club_id is None:
+            logger.error(u"Cannot insert {p[Acquisition]} record for {p[First Name]} {p[Last Name]}: "
+                         u"Club {p[Acquiring Club]} not in database".format(p=keys))
+            return None
         return PlayerDrafts(round=draft_round, selection=draft_selection,
-                            gen_adidas=is_generation_adidas, **acq_tuple)
+                            gen_adidas=is_generation_adidas, club_id=club_id, **acq_tuple)
 
 
 class PlayerSalaryIngest(SeasonalDataIngest):
