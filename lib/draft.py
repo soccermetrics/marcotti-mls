@@ -55,19 +55,23 @@ class DraftAnalytics(Analytics):
         return self.session.query(func.max(PlayerDrafts.round), func.max(PlayerDrafts.selection)).filter(
             PlayerDrafts.path == dtype, PlayerDrafts.year == self.year).one()
 
-    def draft_class(self, rnd, dtype=None):
+    def draft_class(self, rnd=None, dtype=None, GA=None):
         """
-        Return draft class records given draft round and draft type (optional).
+        Return draft class records given draft round, draft type, and Generation Adidas status.
+
+        If draft round is None, then all records for the draft(s) in the year are retrieved.
 
         If draft type is None, then all records for the draft round of all drafts in the year are retrieved.
 
-        :param rnd: Draft round
+        :param rnd: Draft round or None.
         :param dtype: Draft type (AcquisitionType) or None.
+        :param GA: Generation Adidas designation (Boolean) or None.
         :return:
         """
-        params = dict(year=self.year, round=rnd)
-        if dtype is not None:
-            params.update(path=dtype)
+        params = dict(year=self.year)
+        for key, value in zip(['round', 'path', 'gen_adidas'], [rnd, dtype, GA]):
+            if value is not None:
+                params.update(**{key: value})
         return self.session.query(PlayerDrafts).filter_by(**params)
 
     def draft_class_by_position(self, rnd, dtype=None, **kwargs):
