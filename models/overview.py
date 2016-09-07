@@ -358,12 +358,14 @@ class Players(Persons):
     primary_position = Column(enums.PositionType.db_type(), default=enums.PositionType.unknown)
     secondary_position = Column(enums.PositionType.db_type())
 
+    @hybrid_property
+    def position(self):
+        return '/'.join([pos.value for pos in [self.primary_position, self.secondary_position] if pos])
+
     def __repr__(self):
         return u"<Player(name={}, DOB={}, country={}, position={})>".format(
-            self.full_name, self.birth_date.isoformat(), self.country.name,
-            '/'.join([pos.value for pos in [self.primary_position, self.secondary_position] if pos])).encode('utf-8')
+            self.full_name, self.birth_date.isoformat(), self.country.name, self.position).encode('utf-8')
 
     def __unicode__(self):
         return u"<Player(name={}, DOB={}, country={}, position={})>".format(
-            self.full_name, self.birth_date.isoformat(), self.country.name,
-            '/'.join([pos.value for pos in [self.primary_position, self.secondary_position] if pos]))
+            self.full_name, self.birth_date.isoformat(), self.country.name, self.position)
