@@ -74,18 +74,29 @@ class DraftAnalytics(Analytics):
                 params.update(**{key: value})
         return self.session.query(PlayerDrafts).filter_by(**params)
 
-    def draft_class_by_position(self, rnd, dtype=None, **kwargs):
+    def draft_class_filtered(self, **kwargs):
         """
         Return draft class records given draft round, draft type (optional), and primary and/or secondary positions.
 
         If draft type is None, then all records for the draft round of all drafts from that year are retrieved.
 
-        :param rnd: Draft round
-        :param dtype: Draft type (AcquisitionType) or None.
-        :param kwargs: Primary/secondary positions (PositionType).
+        :param kwargs: Other fields in PlayerDrafts model.
         :return:
         """
-        return self.draft_class(rnd, dtype).join(Players).filter_by(**kwargs)
+        rnd = kwargs.pop('rnd', None)
+        dtype = kwargs.pop('dtype', None)
+        GA = kwargs.pop('GA', None)
+        return self.draft_class(rnd, dtype, GA).filter_by(**kwargs)
+
+    def selection(self, dtype, pick):
+        """
+        Return draft selection record given draft type and selection number.
+
+        :param dtype:
+        :param pick:
+        :return:
+        """
+        return self.session.query(PlayerDrafts).filter_by(year=self.year, path=dtype, selection=pick).one()
 
     def history(self, player_id):
         """
@@ -111,7 +122,7 @@ class DraftAnalytics(Analytics):
         else:
             return True
 
-    def draft_mortality(self, rnd, dtype=None, seasons=None):
+    def draft_mortality(self, rnd, dtype=None, seasons=None, method='draft_class', **kwargs):
         """
         Calculate number of drafted players who do not appear in a MLS match.
 
@@ -122,9 +133,11 @@ class DraftAnalytics(Analytics):
         :param rnd: Draft rounds
         :param dtype: Draft type (AcquisitionType) or None
         :param seasons: Seasons after draft year or None
+        :param method: Method to be used to retrieve draft class members
+        :param kwargs: Keyword arguments to pass to draft class method
         :return:
         """
-        draft_class = [rec.player_id for rec in self.draft_class(rnd, dtype)]
+        draft_class = [rec.player_id for rec in getattr(self, method)(rnd, dtype, **kwargs)]
         stat_players = self.session.query(CommonStats.player_id)
         if seasons is None:
             stat_players = stat_players.filter(CommonStats.competition_id == self.competition.id).all()
