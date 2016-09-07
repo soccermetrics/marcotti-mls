@@ -56,7 +56,7 @@ class ValuationAnalytics(Analytics):
                 elif metric == 'goals_allowed':
                     tvals = [(sum(self.club_stats(model, rec.club, metric)) - float(getattr(rec, metric))) / sum(
                         self.club_stats(model, rec.club, metric)) for rec in player_records]
-                    cvals = [float(getattr(rec, metric))/league_max for rec in player_records]
+                    cvals = [float(league_max - getattr(rec, metric))/league_max for rec in player_records]
                 else:
                     tvals = [float(getattr(rec, metric))/sum(self.club_stats(model, rec.club, metric))
                              for rec in player_records]
