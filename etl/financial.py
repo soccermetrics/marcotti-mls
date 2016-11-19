@@ -1,7 +1,9 @@
+import datetime
 import logging
 
 from models import (Countries, Players, PlayerSalaries, PartialTenures, AcquisitionPaths,
-                    AcquisitionType, PlayerDrafts, Competitions, Clubs, Years, Seasons)
+                    AcquisitionType, PlayerDrafts, Competitions, CompetitionSeasons, Clubs,
+                    Years, Seasons)
 from etl import PersonIngest, SeasonalDataIngest
 
 
@@ -135,6 +137,25 @@ class PartialTenureIngest(SeasonalDataIngest):
 
     BATCH_SIZE = 10
 
+    def season_week(self, competition_id, season_id, **kwargs):
+        compseason = self.session.query(CompetitionSeasons).filter_by(
+            competition_id=competition_id, season_id=season_id).one()
+        if 'start' in kwargs:
+            ref_date_string = kwargs.get('start')
+            if ref_date_string is None:
+                return 1
+        elif 'end' in kwargs:
+            ref_date_string = kwargs.get('end')
+            if ref_date_string is None:
+                date_delta = compseason.end_date - compseason.start_date
+                return date_delta.days / 7 + 1
+        else:
+            logger.error("No 'start' or 'end' parameter in season_week call")
+        year, month, day = [int(x) for x in ref_date_string.split('-')]
+        ref_date = datetime.date(year, month, day)
+        date_delta = ref_date - compseason.start_date
+        return date_delta.days / 7 + 1
+
     def parse_file(self, rows):
         inserts = 0
         insertion_list = []
@@ -147,6 +168,8 @@ class PartialTenureIngest(SeasonalDataIngest):
             first_name = self.column_unicode("First Name", **keys)
             start_week = self.column_int("Start Term", **keys)
             end_week = self.column_int("End Term", **keys)
+            start_date_iso = self.column("Start Date", **keys) if "Start Date" in keys else None
+            end_date_iso = self.column("End Date", **keys) if "End Date" in keys else None
 
             competition_id = self.get_id(Competitions, name=competition_name)
             if competition_id is None:
@@ -168,6 +191,9 @@ class PartialTenureIngest(SeasonalDataIngest):
                 logger.error(u"Cannot insert Partial Tenure record for {} {}: "
                              u"Player not in database".format(first_name, last_name))
                 continue
+
+            start_week = start_week or self.season_week(competition_id, season_id, start=start_date_iso)
+            end_week = end_week or self.season_week(competition_id, season_id, end=end_date_iso)
 
             partials_dict = dict(player_id=player_id, club_id=club_id,
                                  competition_id=competition_id,
