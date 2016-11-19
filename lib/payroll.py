@@ -112,6 +112,7 @@ class PayrollAnalytics(Analytics):
         :return: tuple of (available payroll, numerator, denominator, utilization factor)
         """
         numerator, denominator, available_payroll = 0.0, 0.0, 0.0
+        comp_season = comp_season or self.comp_season
         for club_player in self.club_roster(club, comp_season):
             stat_record = self.session.query(CommonStats.minutes).filter_by(
                 comp_season=comp_season, club_id=club.id, player_id=club_player.player_id)
@@ -158,7 +159,7 @@ class PayrollAnalytics(Analytics):
         """
         comp_season = comp_season or self.comp_season
         avail_payroll, _, _, util_factor = self.club_utilization(club, comp_season)
-        points = self.session.query(LeaguePoints.points).filter(
+        points, = self.session.query(LeaguePoints.points).filter(
             LeaguePoints.comp_season == comp_season, LeaguePoints.club_id == club.id).one()
         points_per_game = float(points) / comp_season.matchdays
         return (avail_payroll * util_factor) / points_per_game
