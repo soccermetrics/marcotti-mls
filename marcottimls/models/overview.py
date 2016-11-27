@@ -5,8 +5,8 @@ from sqlalchemy import (case, select, cast, Column, Integer, Date,
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm import relationship, backref
 
-import marcottimls.models.enums as enums
-from marcottimls.models.common import BaseSchema
+import enums
+from common import BaseSchema
 
 
 class Countries(BaseSchema):
