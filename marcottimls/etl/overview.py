@@ -1,12 +1,11 @@
-import re
 import logging
+import re
 from datetime import date
 
-from models import (Countries, Clubs, Competitions, DomesticCompetitions, InternationalCompetitions,
-                    Seasons, CompetitionSeasons, Persons, Players, NameOrderType, PositionType,
-                    ConfederationType)
-from etl.base import BaseCSV
-
+from marcottimls.etl.base import BaseCSV
+from marcottimls.models import (Countries, Clubs, Competitions, DomesticCompetitions, InternationalCompetitions,
+                                Seasons, CompetitionSeasons, Persons, Players, NameOrderType, PositionType,
+                                ConfederationType)
 
 logger = logging.getLogger(__name__)
 

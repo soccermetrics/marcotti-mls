@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from models import Countries, ConfederationType, NameOrderType, PositionType
+from marcottimls.models import Countries, ConfederationType, NameOrderType, PositionType
 
 
 @pytest.fixture

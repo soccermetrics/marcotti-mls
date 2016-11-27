@@ -1,7 +1,7 @@
 import numpy as np
 
-from models import *
-from lib.base import Analytics
+from marcottimls.lib import Analytics
+from marcottimls.models import *
 
 
 class ValuationAnalytics(Analytics):

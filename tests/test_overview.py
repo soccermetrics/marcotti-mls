@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 from sqlalchemy.exc import DataError, IntegrityError
 
-from models import *
+from marcottimls.models import *
 
 
 def test_country_insert(session, country_data):

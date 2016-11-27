@@ -1,12 +1,12 @@
 from datetime import date
 
+from models.common import BaseSchema
 from sqlalchemy import (case, select, cast, Column, Integer, Date,
                         String, Sequence, ForeignKey, Unicode)
-from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.orm import relationship, backref
 
-from models.common import BaseSchema
-import models.enums as enums
+import marcottimls.models.enums as enums
 
 
 class Countries(BaseSchema):
@@ -266,7 +266,7 @@ class Persons(BaseSchema):
             else_=case(
                 [
                     (cls.order == enums.NameOrderType.middle,
-                        case([(cls.known_first_name != None, cls.known_first_name)], else_=cls.first_name) +
+                     case([(cls.known_first_name != None, cls.known_first_name)], else_=cls.first_name) +
                         u' ' + cls.middle_name + u' ' + cls.last_name),
                     (cls.order == enums.NameOrderType.eastern, cls.last_name + u' ' + cls.first_name)
                 ],

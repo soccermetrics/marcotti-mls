@@ -3,7 +3,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session
 
 from local import LocalConfig
-from models import BaseSchema
+from marcottimls.models import BaseSchema
 
 
 class TestConfig(LocalConfig):

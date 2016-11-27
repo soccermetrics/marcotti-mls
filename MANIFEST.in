@@ -1,0 +1,9 @@
+include LICENSE
+include README.md
+include Makefile
+include requirements.txt
+include local.skel
+include conftest.py
+include scripts/logging.json
+recursive-include scripts *.py
+recursive-include tests *.py

@@ -24,12 +24,13 @@ While not required, [virtualenv](https://pypi.python.org/pypi/virtualenv) is str
 
 Installation instructions:
 
-1. Grab latest repo, setup the virtual environment, and install the dependent packages into it:
+1. Setup a virtual environment, grab the latest Marcotti-MLS repo, and install it into the environment:
 
-        $ git clone git://github.com/soccermetrics/marcotti-mls.git
-        $ cd marcotti-mls
+        $ cd /path/to/working/dir
         $ mkvirtualenv marcotti-mls
-        (marcotti-mls) $ pip install -r requirements.txt
+        (marcotti-mls) $ git clone git://github.com/soccermetrics/marcotti-mls.git
+        (marcotti-mls) $ cd marcotti-mls
+        (marcotti-mls) $ make install
     
 2. Copy `local.skel` to `local.py` and populate it.  Alternative configuration
    settings can be created by subclassing `LocalConfig` and overwriting the attributes.

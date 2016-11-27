@@ -1,12 +1,11 @@
-import os
 import csv
 import glob
 import logging
+import os
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from models import Seasons, Years, Players
-
+from marcottimls.models import Seasons, Years, Players
 
 logger = logging.getLogger(__name__)
 

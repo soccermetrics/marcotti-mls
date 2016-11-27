@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Sequence, Index, For
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import CheckConstraint
 
-from models.common import BaseSchema
+from marcottimls.models.common import BaseSchema
 
 
 class CommonStats(BaseSchema):

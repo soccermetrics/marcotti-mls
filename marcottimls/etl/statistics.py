@@ -1,7 +1,7 @@
 import logging
 
-from etl.base import SeasonalDataIngest
-from models import *
+from marcottimls.etl.base import SeasonalDataIngest
+from marcottimls.models import *
 
 
 logger = logging.getLogger(__name__)

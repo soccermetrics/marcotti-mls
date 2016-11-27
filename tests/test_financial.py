@@ -1,8 +1,4 @@
 # coding=utf-8
-import pytest
-from sqlalchemy.exc import DataError, IntegrityError
-
-from models import *
 
 
 def test_acquisition_path_insert(session):

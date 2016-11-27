@@ -1,4 +1,3 @@
-import os
 import re
 import sys
 import logging
@@ -7,21 +6,12 @@ from contextlib import contextmanager
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session
 
-from local import LocalConfig
-from models import BaseSchema
+from .version import __version__
 from etl import create_seasons, ingest_feeds, get_local_handles, CountryIngest
+from models import BaseSchema
 
 
-__version__ = ('0', '9', '0')
-
-LOG_FORMAT = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s: %(message)s')
-ch = logging.FileHandler(os.path.join(LocalConfig().LOG_DIR, 'marcotti.log'))
-ch.setLevel(logging.INFO)
-ch.setFormatter(LOG_FORMAT)
-
-logger = logging.getLogger('marcotti-interface')
-logger.setLevel(logging.INFO)
-logger.addHandler(ch)
+logger = logging.getLogger(__name__)
 
 
 class Marcotti(object):
@@ -77,10 +67,3 @@ class Marcotti(object):
             logger.info("Session {0} with {1} closed".format(
                 id(session), self._public_db_uri(str(self.engine.url))))
             session.close()
-
-
-if __name__ == "__main__":
-    from local import LocalConfig
-
-    marcotti = Marcotti(LocalConfig())
-    marcotti.create_db()

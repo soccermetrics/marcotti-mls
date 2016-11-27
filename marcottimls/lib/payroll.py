@@ -1,7 +1,7 @@
 from sqlalchemy.sql import func
 
-from models import *
 from base import Analytics
+from marcottimls.models import *
 
 
 class PayrollAnalytics(Analytics):

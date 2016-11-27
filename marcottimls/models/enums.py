@@ -1,4 +1,4 @@
-from models.common import DeclEnum
+from marcottimls.models.common import DeclEnum
 
 
 class ConfederationType(DeclEnum):

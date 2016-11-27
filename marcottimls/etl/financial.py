@@ -1,11 +1,10 @@
 import datetime
 import logging
 
-from models import (Countries, Players, PlayerSalaries, PartialTenures, AcquisitionPaths,
-                    AcquisitionType, PlayerDrafts, Competitions, CompetitionSeasons, Clubs,
-                    Years, Seasons)
-from etl import PersonIngest, SeasonalDataIngest
-
+from marcottimls.etl import PersonIngest, SeasonalDataIngest
+from marcottimls.models import (Countries, Players, PlayerSalaries, PartialTenures, AcquisitionPaths,
+                                AcquisitionType, PlayerDrafts, Competitions, CompetitionSeasons, Clubs,
+                                Years, Seasons)
 
 logger = logging.getLogger(__name__)
 
