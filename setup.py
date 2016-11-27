@@ -2,7 +2,7 @@ import os
 from setuptools import setup
 
 
-REQUIRES = ['SQLAlchemy>=1.0.9', 'pytest>=2.8.2']
+REQUIRES = ['SQLAlchemy>=1.0.9', 'pytest>=2.8.2', 'psycopg2>=2.5.1']
 exec(open('marcottimls/version.py').read())
 
 setup(
