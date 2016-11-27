@@ -75,7 +75,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
                         *enum.values(),
                         name="ck%s" % re.sub(
                                     '([A-Z])',
-                                    lambda m:"_" + m.group(1).lower(),
+                                    lambda m: "_" + m.group(1).lower(),
                                     enum.__name__)
                     )
 

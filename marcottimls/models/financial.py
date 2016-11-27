@@ -1,9 +1,9 @@
-from models.common import BaseSchema
 from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, ForeignKeyConstraint, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import CheckConstraint
 
 import marcottimls.models.enums as enums
+from marcottimls.models.common import BaseSchema
 
 
 class AcquisitionPaths(BaseSchema):

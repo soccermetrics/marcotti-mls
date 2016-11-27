@@ -1,6 +1,6 @@
 import numpy as np
 
-from marcottimls.lib import Analytics
+from marcottimls.lib.base import Analytics
 from marcottimls.models import *
 
 

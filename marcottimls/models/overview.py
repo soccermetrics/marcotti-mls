@@ -1,12 +1,12 @@
 from datetime import date
 
-from models.common import BaseSchema
 from sqlalchemy import (case, select, cast, Column, Integer, Date,
                         String, Sequence, ForeignKey, Unicode)
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm import relationship, backref
 
 import marcottimls.models.enums as enums
+from marcottimls.models.common import BaseSchema
 
 
 class Countries(BaseSchema):
