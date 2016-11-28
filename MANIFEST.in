@@ -3,5 +3,7 @@ include README.md
 include Makefile
 include requirements.txt
 include conftest.py
+recursive-include data *.csv
+recursive-include data *.json
 recursive-include data/templates *.skel
 recursive-include tests *.py
