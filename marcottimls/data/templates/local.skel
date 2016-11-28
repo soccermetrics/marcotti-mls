@@ -1,0 +1,54 @@
+"""
+This is a local configuration file for Marcotti-MLS.
+"""
+import os
+
+from marcottimls import MarcottiConfig
+
+
+class {{ config_class }}(MarcottiConfig):
+    """
+    Local Configuration class that contains settings for Marcotti database.
+
+    Multiple configurations can be created by copying or subclassing this class.
+    """
+
+    # At a minimum, these variables must be defined.
+    DIALECT = '{{ dialect }}'
+    DBNAME = '{{ dbname }}'
+
+    # For all other non-SQLite databases, these variables must be set.
+    DBUSER = '{{ dbuser }}'
+    DBPASSWD = ''  # This should be inserted by user.
+    HOSTNAME = '{{ dbhost }}'
+    PORT = {{ dbport }}
+
+    # Define initial start and end years in database.
+    START_YEAR = {{ start_yr }}
+    END_YEAR = {{ end_yr }}
+
+    #
+    # Logging configuration variables
+    #
+
+    LOG_DIR = r"{{ logging_dir }}"
+
+    #
+    # ETL variables
+    #
+
+    # Define CSV data files
+    CSV_DATA_DIR = r"{{ data_dir }}"
+    CSV_DATA = {
+        'Clubs': {{ data.clubs }},
+        'Competitions': {{ data.competitions }},
+        'CompetitionSeasons': {{ data.comp_seasons }},
+        'Players': {{ data.players }},
+        'Acquisitions': {{ data.acquisitions }},
+        'Salaries': {{ data.salaries }},
+        'Partials': {{ data.partials }},
+        'Minutes': {{ data.minutes }},
+        'FieldStats': {{ data.field_stats }},
+        'GkStats': {{ data.gk_stats }},
+        'LeaguePoints': {{ data.points }}
+    }
