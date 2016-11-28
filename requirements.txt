@@ -1,10 +1,5 @@
 coverage>=4.0.1
-psycopg2>=2.6.1
 pytest>=2.8.2
 SQLAlchemy>=1.0.9
 jinja2>=2.7
 clint>=0.4.0
-mysql-python>=1.2.3
-cx_oracle>=5.0
-pyodbc>=3.0
-fdb>=1.6
