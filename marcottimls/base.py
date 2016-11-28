@@ -67,3 +67,16 @@ class Marcotti(object):
             logger.info("Session {0} with {1} closed".format(
                 id(session), self._public_db_uri(str(self.engine.url))))
             session.close()
+
+
+class MarcottiConfig(object):
+    """
+    Base configuration class for Marcotti-MLS.  Contains one property that defines the database URI.
+
+    This class is to be subclassed and its attributes defined therein.
+    """
+
+    @property
+    def database_uri(self):
+        return r'sqlite://{p.DBNAME}'.format(p=self) if getattr(self, 'DIALECT') == 'sqlite' else \
+            r'{p.DIALECT}://{p.DBUSER}:{p.DBPASSWD}@{p.HOSTNAME}:{p.PORT}/{p.DBNAME}'.format(p=self)
