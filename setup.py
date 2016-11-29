@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-REQUIRES = ['SQLAlchemy>=1.0.9', 'pytest>=2.8.2']
+REQUIRES = ['SQLAlchemy>=1.0.9']
 exec(open('marcottimls/version.py').read())
 
 setup(
@@ -11,7 +11,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'dbsetup = marcottimls.tools.dbsetup'
+            'dbsetup = marcottimls.tools.dbsetup:main'
         ]
     },
     url='https://github.com/soccermetrics/marcotti-mls',
@@ -27,6 +27,7 @@ setup(
         'Oracle': ['cx_oracle>=5.0'],
         'Firebird': ['fdb>=1.6']
     },
+    tests_require=['pytest>=2.8.2'],
     description='Software library for creating and querying football databases specific to Major League Soccer',
     long_description=open('README.md').read()
 )

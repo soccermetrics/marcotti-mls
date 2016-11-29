@@ -26,28 +26,25 @@ Installation instructions:
 
 1. Setup a virtual environment, grab the latest Marcotti-MLS repo, and install it into the environment:
 
-        $ cd /path/to/working/dir
-        $ mkvirtualenv marcotti-mls
-        (marcotti-mls) $ git clone git://github.com/soccermetrics/marcotti-mls.git
-        (marcotti-mls) $ cd marcotti-mls
-        (marcotti-mls) $ make install
-    
-2. Copy `local.skel` to `local.py` and populate it.  Alternative configuration
-   settings can be created by subclassing `LocalConfig` and overwriting the attributes.
-    
-   ```python
-   class LocalConfig(Config):
-        # At a minimum, these variables must be defined.
-        DIALECT = ''
-        DBNAME = ''
-        
-        # For all other non-SQLite databases, these variables must be set.
-        DBUSER = ''
-        DBPASSWD = ''
-        HOSTNAME = ''
-        PORT = 5432
-   ```
-    
+    ```shell
+    $ cd /path/to/working/dir
+    $ mkvirtualenv marcotti-mls
+    (marcotti-mls) $ git clone git://github.com/soccermetrics/marcotti-mls.git
+    (marcotti-mls) $ cd marcotti-mls
+    (marcotti-mls) $ make install
+    ```
+
+2. Run the `dbsetup` command and answer the setup questions to create configuration and data loading scripts.
+
+    ```shell
+    (marcotti-mls) $ dbsetup
+    #### Please answer the following questions to setup the folder ####
+    Work folder (must exist): [.] /path/to/files
+    Logging folder (must exist): [.] /path/to/logs
+    Config file name: [local]
+    Config class name: [LocalConfig]
+    ```
+
 ## Data Models
 
 Unlike other data models in the Marcotti family, Marcotti-MLS is a single schema because it is only relevant to club 
