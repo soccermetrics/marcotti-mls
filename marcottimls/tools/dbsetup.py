@@ -33,10 +33,10 @@ def setup_user_input():
     print "#### Please answer the following questions to setup the folder ####"
     work_folder = prompt.query('Work folder (must exist):', default='.', validators=[validators.PathValidator()])
     log_folder = prompt.query('Logging folder (must exist):', default='.', validators=[validators.PathValidator()])
-    config_file = prompt.query('Config file name', default='local')
-    config_class = prompt.query('Config class name', default='LocalConfig')
+    config_file = prompt.query('Config file name:', default='local')
+    config_class = prompt.query('Config class name:', default='LocalConfig')
     print "#### Database configuration setup ####"
-    dialect = prompt.options('Marcotti-MLS Database backend', dialect_options)
+    dialect = prompt.options('Marcotti-MLS Database backend:', dialect_options)
     if dialect == 'sqlite':
         dbname = prompt.query('Database filename:', validators=[validators.FileValidator()])
         dbuser = ''
