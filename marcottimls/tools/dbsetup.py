@@ -1,4 +1,6 @@
 import os
+import pkg_resources
+
 import jinja2
 from clint.textui import colored, prompt, puts, validators
 
@@ -78,7 +80,7 @@ def setup_user_input():
         'start_yr': start_yr,
         'end_yr': end_yr,
         'logging_dir': log_folder,
-        'log_file_path': os.path.join(log_folder, 'logging.json'),
+        'log_file_path': os.path.join(log_folder, 'marcotti.log'),
         'data_dir': top_level_data_dir,
         'data': {
             'clubs': club_data_path,
@@ -98,14 +100,15 @@ def setup_user_input():
 
 
 def main():
+    DATA_PATH = pkg_resources.resource_filename('marcottimls', 'data/')
     main_folder, setup_dict = setup_user_input()
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath='../data/templates'),
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath=DATA_PATH),
                              trim_blocks=True, lstrip_blocks=True)
     template_files = ['local.skel', 'logging.skel', 'loader.skel']
     output_files = ['{}.py'.format(setup_dict['config_file']), 'logging.json', 'loader.py']
 
     for template_file, output_file in zip(template_files, output_files):
-        template = env.get_template(template_file)
+        template = env.get_template(os.path.join('templates', template_file))
         with open(os.path.join(main_folder, output_file), 'w') as g:
             result = template.render(setup_dict)
             g.write(result)

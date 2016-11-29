@@ -1,14 +1,16 @@
 from setuptools import setup, find_packages
 
 
-REQUIRES = ['SQLAlchemy>=1.0.9']
+REQUIRES = ['SQLAlchemy>=1.0.9', 'jinja2>=2.7', 'clint>=0.4.0']
 exec(open('marcottimls/version.py').read())
 
 setup(
     name='marcotti-mls',
     version=__version__,
     packages=find_packages(),
-    include_package_data=True,
+    package_data={
+        'marcottimls': ['data/*.csv', 'data/*.json', 'data/templates/*.skel']
+    },
     entry_points={
         'console_scripts': [
             'dbsetup = marcottimls.tools.dbsetup:main'

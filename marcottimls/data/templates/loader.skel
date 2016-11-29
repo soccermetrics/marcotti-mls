@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     marcotti = Marcotti(settings)
+    marcotti.create_db()
     logger.info("Data ingestion start")
     with marcotti.create_session() as sess:
         for entity, etl_class in CSV_ETL_CLASSES:

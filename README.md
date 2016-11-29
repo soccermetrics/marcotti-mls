@@ -44,16 +44,21 @@ Installation instructions:
     Config file name: [local]
     Config class name: [LocalConfig]
     ```
+    The command will produce three files in the working folder:
+    
+    * `local.py`: A user-defined database configuration file
+    * `logging.json`: Default logging configuration file
+    * `loader.py`: Data loading module
 
 ## Data Models
 
 Unlike other data models in the Marcotti family, Marcotti-MLS is a single schema because it is only relevant to club 
-football (in this case, a single league).  Marcotti-MLS does borrow common models from other Marcotti schema:
+football (in this case, a single league).  Marcotti-MLS does borrow common models from other Marcotti schema.
 
 ## Documentation
 
-The [Marcotti-MLS wiki](https://github.com/soccermetrics/marcotti-mls/wiki) contains extensive user documentation of the 
-package.
+The [Marcotti-MLS wiki](https://github.com/soccermetrics/marcotti-mls/wiki) contains
+extensive user documentation of the package.
 
 ## License
 
