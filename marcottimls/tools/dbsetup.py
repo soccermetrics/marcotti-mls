@@ -33,14 +33,14 @@ def setup_user_input():
     :return:
     """
     print "#### Please answer the following questions to setup the folder ####"
-    work_folder = prompt.query('Work folder (must exist):', default='.', validators=[validators.PathValidator()])
     log_folder = prompt.query('Logging folder (must exist):', default='.', validators=[validators.PathValidator()])
+    loader_file = prompt.query('Loader file name:', default='loader')
     config_file = prompt.query('Config file name:', default='local')
     config_class = prompt.query('Config class name:', default='LocalConfig')
     print "#### Database configuration setup ####"
     dialect = prompt.options('Marcotti-MLS Database backend:', dialect_options)
     if dialect == 'sqlite':
-        dbname = prompt.query('Database filename:', validators=[validators.FileValidator()])
+        dbname = prompt.query('Database filename (must exist):', validators=[validators.FileValidator()])
         dbuser = ''
         hostname = ''
         dbport = 0
@@ -70,6 +70,7 @@ def setup_user_input():
     print "#### End setup questions ####"
 
     setup_dict = {
+        'loader_file': loader_file.lower(),
         'config_file': config_file.lower(),
         'config_class': config_class,
         'dialect': dialect,
@@ -96,21 +97,22 @@ def setup_user_input():
             'points': points_data_path
         }
     }
-    return work_folder, setup_dict
+    return setup_dict
 
 
 def main():
     DATA_PATH = pkg_resources.resource_filename('marcottimls', 'data/')
-    main_folder, setup_dict = setup_user_input()
+    setup_dict = setup_user_input()
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath=DATA_PATH),
                              trim_blocks=True, lstrip_blocks=True)
     template_files = ['local.skel', 'logging.skel', 'loader.skel']
-    output_files = ['{}.py'.format(setup_dict['config_file']), 'logging.json', 'loader.py']
-
+    output_files = ['{config_file}.py'.format(**setup_dict),
+                    'logging.json',
+                    '{loader_file}.py'.format(**setup_dict)]
     for template_file, output_file in zip(template_files, output_files):
         template = env.get_template(os.path.join('templates', template_file))
-        with open(os.path.join(main_folder, output_file), 'w') as g:
+        with open(output_file, 'w') as g:
             result = template.render(setup_dict)
             g.write(result)
-            print "Configured {}".format(os.path.join(main_folder, output_file))
+            print "Configured {}".format(output_file)
     print "#### Setup complete ###"
