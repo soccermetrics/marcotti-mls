@@ -1,7 +1,10 @@
+import sys
 from setuptools import setup, find_packages
 
 
 REQUIRES = ['SQLAlchemy>=1.0.9', 'jinja2>=2.7', 'clint>=0.4.0']
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+pytest_runner = ['pytest_runner'] if needs_pytest else []
 exec(open('marcottimls/version.py').read())
 
 setup(
@@ -21,6 +24,7 @@ setup(
     author='Soccermetrics Research',
     author_email='info@soccermetrics.net',
     keywords=['soccer', 'football', 'soccer analytics', 'data modeling', 'MLS'],
+    setup_requires=pytest_runner,
     install_requires=REQUIRES,
     extras_require={
         'PostgreSQL': ['psycopg2>=2.5.1'],
