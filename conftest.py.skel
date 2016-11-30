@@ -2,11 +2,11 @@ import pytest
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session
 
-from local import LocalConfig
+from {{ config_file }} import {{ config_class }}
 from marcottimls.models import BaseSchema
 
 
-class TestConfig(LocalConfig):
+class TestConfig({{ config_class }}):
     DBNAME = 'test-marcotti-db'
 
 
