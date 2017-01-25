@@ -1,6 +1,7 @@
 import re
 import sys
 import logging
+import pkg_resources
 from contextlib import contextmanager
 
 from sqlalchemy.engine import create_engine
@@ -17,8 +18,7 @@ logger = logging.getLogger(__name__)
 class Marcotti(object):
 
     def __init__(self, config):
-        logger.info("Marcotti-MLS v{0}: Python {1} on {2}".format(
-            '.'.join(__version__), sys.version, sys.platform))
+        logger.info("Marcotti-MLS v{0}: Python {1} on {2}".format(__version__, sys.version, sys.platform))
         logger.info("Opened connection to {0}".format(self._public_db_uri(config.database_uri)))
         self.engine = create_engine(config.database_uri)
         self.connection = self.engine.connect()
@@ -43,7 +43,8 @@ class Marcotti(object):
         BaseSchema.metadata.create_all(self.connection)
         with self.create_session() as sess:
             create_seasons(sess, self.start_year, self.end_year)
-            ingest_feeds(get_local_handles, 'data', 'countries.csv', CountryIngest(sess))
+            interior_path = pkg_resources.resource_filename('marcottimls', 'data')
+            ingest_feeds(get_local_handles, interior_path, ('countries.csv',), CountryIngest(sess))
 
     @contextmanager
     def create_session(self):

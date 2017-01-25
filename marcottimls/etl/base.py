@@ -159,8 +159,8 @@ def ingest_feeds(handle_iterator, prefix, pattern, feed_class):
     :type handle_iterator: return value of generator
     :param prefix: File path, which is also defined as the prefix of the filename.
     :type prefix: string
-    :param pattern: Text pattern common to group of XML files.
-    :type pattern: string
+    :param pattern: Local path and text pattern common to group of XML files.
+    :type pattern: tuple
     :param feed_class: Data feed interface class.
     :type feed_class: class
     """
@@ -172,12 +172,12 @@ def get_local_handles(prefix, pattern):
     """Generates a sequence of file handles for XML files of a common type
     that are hosted on a local machine.
 
-    :param prefix: File path, which is also defined as the prefix of the filename.
+    :param prefix: Common path, which is also defined as the prefix of the filename.
     :type prefix: string
-    :param pattern: Text pattern common to group of files.
-    :type pattern: string
+    :param pattern: Local path and text pattern common to group of files.
+    :type pattern: tuple
     """
-    glob_pattern = os.path.join(prefix, "{}".format(pattern))
+    glob_pattern = os.path.join(prefix, *pattern)
     for filename in glob.glob(glob_pattern):
         logger.info("Loading data file {}".format(filename))
         with open(filename) as fh:

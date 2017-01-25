@@ -23,8 +23,8 @@ def main():
             if data_file is None:
                 logger.info("Skipping ingestion into %s data model", entity)
             else:
-                if type(data_file) is list:
-                    data_file = os.path.join(*data_file)
+                if type(data_file) is str:
+                    data_file = (data_file,)
                 logger.info("** Ingesting into %s data model **", entity)
                 ingest_feeds(get_local_handles, settings.CSV_DATA_DIR, data_file, etl_class(sess))
     logger.info("Data ingestion complete")
