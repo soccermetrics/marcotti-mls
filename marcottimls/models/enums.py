@@ -55,3 +55,6 @@ class AcquisitionType(DeclEnum):
     loan = "Loan Signing", "Loan signing"
     project40 = "Project-40 Allocation", "Project-40 allocation"
     weighted_lottery = "Weighted Lottery", "Weighted Lottery"
+    tam_loan = "TAM Loan Signing", "Loan signing - Targeted Allocation Money"
+    tam_domestic = "TAM Domestic Signing", "Domestic signing - Targeted Allocation Money"
+    tam_foreign = "TAM Foreign Signing", "Foreign signing - Targeted Allocation Money"
