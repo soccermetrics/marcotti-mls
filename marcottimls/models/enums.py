@@ -58,3 +58,4 @@ class AcquisitionType(DeclEnum):
     tam_loan = "TAM Loan Signing", "Loan signing - Targeted Allocation Money"
     tam_domestic = "TAM Domestic Signing", "Domestic signing - Targeted Allocation Money"
     tam_foreign = "TAM Foreign Signing", "Foreign signing - Targeted Allocation Money"
+    tam_discovery = "TAM Discovery Signing", "Discovery signing - Targeted Allocation Money"
